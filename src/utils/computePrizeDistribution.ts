@@ -18,8 +18,8 @@ interface IPrizeDistribution {
 export async function computePrizeDistribution(
     draw: Draw,
     prizeTierHistory: Contract,
-    reserveToCalculate: Contract,
-    otherReserve: Contract,
+    ticket: Contract,
+    otherTicket: Contract,
     totalSupplyTickets: number,
     totalSupplyDecimals: number
 ): Promise<IPrizeDistribution> {
@@ -34,7 +34,7 @@ export async function computePrizeDistribution(
     debug(`cardinality is ${matchCardinality}`)
 
     debug('computePrizeDistribution: computing number of picks')
-    const numberOfPicks = await calculatePicks(prizeTier.bitRangeSize, matchCardinality, beaconPeriod - startTimestampOffset, beaconPeriod - endTimestampOffset, reserveToCalculate, otherReserve)
+    const numberOfPicks = await calculatePicks(prizeTier.bitRangeSize, matchCardinality, beaconPeriod - startTimestampOffset, beaconPeriod - endTimestampOffset, ticket, otherTicket)
     debug(`number of picks is ${numberOfPicks}`)
 
     const prizeDistribution = {
