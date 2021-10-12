@@ -1,10 +1,7 @@
+import { Contract } from '@ethersproject/contracts'
 import { ethers } from 'ethers'
 
-interface ReserverContract {
-  getReserveAccumulatedBetween: Function
-}
-
-export async function calculatePicks(bitRange: number, cardinality: number, startTime: number, endTime: number, reserveToCalculate: ReserverContract, otherReserve: ReserverContract) {
+export async function calculatePicks(bitRange: number, cardinality: number, startTime: number, endTime: number, reserveToCalculate: Contract, otherReserve: Contract) {
   const totalPicks = (2 ** bitRange) ** cardinality
   const reserveAccumulated = await reserveToCalculate.getReserveAccumulatedBetween(startTime, endTime)
   // console.log(`${reserveToCalculate.address} reserveAccumulated ${ethers.utils.formatEther(reserveAccumulated)}`)

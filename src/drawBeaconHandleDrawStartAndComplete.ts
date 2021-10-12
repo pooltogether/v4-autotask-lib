@@ -7,30 +7,30 @@ const debug = require('debug')('pt-autotask')
 
 export async function drawBeaconHandleDrawStartAndComplete(config: Config, relayer: Relayer): Promise<ActionState> {
   const provider = getInfuraProvider(config.network, config.apiKey)
-  const DrawBeacon_Contract = getContract('DrawBeacon', config.chainId, provider, contracts);
+  const drawBeacon = getContract('DrawBeacon', config.chainId, provider, contracts);
 
   try {
     let msg;
     let completedDraw = false;
-    const nextDrawId = await DrawBeacon_Contract.getNextDrawId()
-    const beaconPeriodStartedAt = await DrawBeacon_Contract.getBeaconPeriodStartedAt()
-    const isRngRequested = await DrawBeacon_Contract.isRngRequested()
-    const isBeaconPeriodOver = await DrawBeacon_Contract.isRngRequested()
-    const beaconPeriodSeconds = await DrawBeacon_Contract.getBeaconPeriodSeconds()
-    const canStartDraw = await DrawBeacon_Contract.canStartDraw()
-    const canCompleteDraw = await DrawBeacon_Contract.canCompleteDraw()
+    const nextDrawId = await drawBeacon.getNextDrawId()
+    const beaconPeriodStartedAt = await drawBeacon.getBeaconPeriodStartedAt()
+    const isRngRequested = await drawBeacon.isRngRequested()
+    const isBeaconPeriodOver = await drawBeacon.isRngRequested()
+    const beaconPeriodSeconds = await drawBeacon.getBeaconPeriodSeconds()
+    const canStartDraw = await drawBeacon.canStartDraw()
+    const canCompleteDraw = await drawBeacon.canCompleteDraw()
 
     debug('DrawBeacon Beacon PeriodStartedAt:', beaconPeriodStartedAt.toString())
     debug('DrawBeacon Beacon PeriodSeconds:', beaconPeriodSeconds.toString())
     debug('DrawBeacon Beacon PeriodOver:', isBeaconPeriodOver)
     debug('DrawBeacon next Draw.drawId:', nextDrawId)
-    debug('Is RNG Requested:', await DrawBeacon_Contract.isRngRequested())
-    debug('Can Start Draw:', await DrawBeacon_Contract.canStartDraw())
-    debug('Can Complete Draw:', await DrawBeacon_Contract.canCompleteDraw())
+    debug('Is RNG Requested:', await drawBeacon.isRngRequested())
+    debug('Can Start Draw:', await drawBeacon.canStartDraw())
+    debug('Can Complete Draw:', await drawBeacon.canCompleteDraw())
 
-    if (await DrawBeacon_Contract.canStartDraw()) {
+    if (await drawBeacon.canStartDraw()) {
       debug(`Starting draw ${nextDrawId}...`)
-      const tx = await DrawBeacon_Contract.populateTransaction.startDraw()
+      const tx = await drawBeacon.populateTransaction.startDraw()
       const txRes = await relayer.sendTransaction({
         data: tx.data,
         to: tx.to,
@@ -41,10 +41,10 @@ export async function drawBeaconHandleDrawStartAndComplete(config: Config, relay
       msg = 'DrawBeacon/starting-draw';
     }
 
-    if (await DrawBeacon_Contract.canCompleteDraw()) {
+    if (await drawBeacon.canCompleteDraw()) {
 
       debug(`Completing draw ${nextDrawId}...`)
-      const tx = await DrawBeacon_Contract.populateTransaction.completeDraw()
+      const tx = await drawBeacon.populateTransaction.completeDraw()
       const txRes = await relayer.sendTransaction({
         data: tx.data,
         to: tx.to,

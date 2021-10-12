@@ -5,7 +5,7 @@ import { Relayer } from './mocks/Relayer'
 describe('computePrizeDistribution', () => {
 
   it('should succeed to connect and push new Draw and PrizeDistribution parameters to L1TimeLockTrigger', async () => {
-    expect(await L1SyncAutotask.L1PrizeDistributionPush(
+    expect(await utils.computePrizeDistribution(
       {
         network: 'rinkeby',
         chainId: 4,

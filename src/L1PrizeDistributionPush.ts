@@ -1,7 +1,7 @@
 // @ts-ignore
 import { ethers } from 'ethers';
 import contracts from '@pooltogether/v4-testnet/testnets.json'
-import { ActionState, Relayer, ContractPrizeTierHistory, ReserverContract } from './types'
+import { ActionState, Relayer } from './types'
 import getContract from './utils/getContract';
 import getInfuraProvider from "./utils/getInfuraProvider";
 import computePrizeDistribution from './utils/computePrizeDistribution';
@@ -64,9 +64,9 @@ export async function L1PrizeDistributionPush(config: L1PrizeDistributionPushCon
       const draw = await drawBuffer.getDraw(drawId)
       const prizeDistribution = await computePrizeDistribution(
         draw,
-        prizeTierHistory as unknown as ContractPrizeTierHistory,
-        reserveL1 as unknown as ReserverContract,
-        reserveL2 as unknown as ReserverContract,
+        prizeTierHistory,
+        reserveL1,
+        reserveL2,
         totalSupplyTickets,
         decimals
       )
