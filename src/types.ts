@@ -2,6 +2,8 @@ export interface ActionState {
   err: any;
   msg: any;
   data?: any;
+  transaction?: any;
+  status: number;
 }
 
 export interface ContractData {
@@ -21,6 +23,7 @@ export interface Config {
   apiKey: string | undefined;
   speed?: "slow" | "normal" | "fast";
   gasLimit?: number | string;
+  execute?: Boolean;
 }
 
 export interface Relayer {

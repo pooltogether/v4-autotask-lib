@@ -56,7 +56,7 @@
   },
   "dependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.2",
-    "@pooltogether/v4-testnet": "^1.0.0-beta.5",
+    "@pooltogether/v4-testnet": "^1.0.0-beta.7",
     "ethers": "^5.4.7",
     "hardhat": "^2.6.5",
     "hardhat-dependency-compiler": "^1.1.1",

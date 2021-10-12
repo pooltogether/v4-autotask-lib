@@ -1,6 +1,6 @@
 // @ts-ignore
 import { ethers } from 'ethers';
-import contracts from '@pooltogether/v4-testnet/testnets.json'
+import contracts from '@pooltogether/v4-testnet/testnet.json'
 import { ActionState, Relayer } from './types'
 import getContract from './utils/getContract';
 import getInfuraProvider from "./utils/getInfuraProvider";
@@ -13,6 +13,7 @@ interface L1PrizeDistributionPushConfig {
   apiKey: string | undefined;
   speed?: "slow" | "normal" | "fast";
   gasLimit?: number | string;
+  execute?: Boolean;
   L1: {
     chainId: number;
     network: string;
@@ -38,29 +39,33 @@ export async function L1PrizeDistributionPush(config: L1PrizeDistributionPushCon
   const ticketL2 = getContract('Ticket', config.L2.chainId, provider, contracts)
   const prizeTierHistory = getContract('PrizeTierHistory', config.L1.chainId, provider, contracts)
 
-  let msg;
-  let newestDraw
   try {
+    let tx;
+    let txRes;
+    let status = 0;
+    let newestDraw
+    let msg = 'L1TimelockTrigger/no-action-required';
+
     newestDraw = await drawBuffer.getNewestDraw()
     const totalSupplyTickets = (await ticketL2.totalSupply()).add(await ticketL1.totalSupply())
     const decimals = await ticketL2.decimals()
     debug(`Total supply of tickets: ${ethers.utils.formatUnits(totalSupplyTickets, decimals)}`)
 
-    /// Rinkeby Prize Distribution (L1 Trigger)
-    let lastRinkebyPrizeDistributionDrawId = 0
+    /// L1 Prize Distribution (L1 Trigger)
+    let lastPrizeDistributionDrawId = 0
     try {
       const { drawId } = await prizeDistributionBuffer.getNewestPrizeDistribution()
-      lastRinkebyPrizeDistributionDrawId = drawId
+      lastPrizeDistributionDrawId = drawId
     } catch (e) {
 
     }
 
-    const rinkebyTimelockElapsed = await drawCalculatorTimelock.hasElapsed()
-    debug(`Last Rinkeby prize distribution draw id is ${lastRinkebyPrizeDistributionDrawId}`)
+    const timelockElapsed = await drawCalculatorTimelock.hasElapsed()
+    debug(`Last L1 prize distribution draw id is ${lastPrizeDistributionDrawId}`)
 
     // If the prize distribution hasn't propagated and we're allowed to push
-    if (lastRinkebyPrizeDistributionDrawId < newestDraw.drawId && rinkebyTimelockElapsed) {
-      const drawId = lastRinkebyPrizeDistributionDrawId + 1
+    if (lastPrizeDistributionDrawId < newestDraw.drawId && timelockElapsed) {
+      const drawId = lastPrizeDistributionDrawId + 1
       const draw = await drawBuffer.getDraw(drawId)
       const prizeDistribution = await computePrizeDistribution(
         draw,
@@ -71,29 +76,37 @@ export async function L1PrizeDistributionPush(config: L1PrizeDistributionPushCon
         decimals
       )
 
-      const txData = await l1TimelockTrigger.populateTransaction.push(draw.drawId, prizeDistribution)
-      debug(`Pushing rinkeby prize distrubtion for draw ${drawId}...`)
-      const tx = await relayer.sendTransaction({
-        data: txData.data,
-        to: draw.address,
-        speed: 'fast',
-        gasLimit: 500000,
-      });
-
-      debug(`Propagated prize distribution for draw ${draw.drawId} to Rinkeby: `, tx)
+      // IF 
+      if (config.execute && relayer) {
+        tx = await l1TimelockTrigger.populateTransaction.push(draw.drawId, prizeDistribution)
+        debug(`Pushing L1 prize distrubtion for draw ${drawId}...`)
+        txRes = await relayer.sendTransaction({
+          data: tx.data,
+          to: draw.address,
+          speed: 'fast',
+          gasLimit: 500000,
+        });
+        debug(`Propagated prize distribution for draw ${draw.drawId} to L1: `, txRes.hash)
+        status = 1;
+      }
     }
 
     return {
+      status: status,
       err: false,
       msg: msg,
+      transaction: {
+        data: tx?.data,
+        to: tx?.to,
+      },
       data: {
 
       },
     }
   } catch (error) {
     debug(error)
-    debug("Draw Unavailable")
     return {
+      status: 0,
       err: error,
       msg: 'Error',
     }

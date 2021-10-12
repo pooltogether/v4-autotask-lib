@@ -1,5 +1,5 @@
 // @ts-nocheck
-import contracts from '@pooltogether/v4-testnet/testnets.json'
+import contracts from '@pooltogether/v4-testnet/testnet.json'
 import { Config, ActionState, Relayer } from '../types'
 import { getContract } from './utils/getContract';
 import { getInfuraProvider } from "./utils/getInfuraProvider";
