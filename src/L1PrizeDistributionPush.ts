@@ -76,7 +76,7 @@ export async function L1PrizeDistributionPush(config: L1PrizeDistributionPushCon
         decimals
       )
 
-      // IF 
+      // IF executable and Relayer is available.
       if (config.execute && relayer) {
         tx = await l1TimelockTrigger.populateTransaction.push(draw.drawId, prizeDistribution)
         debug(`Pushing L1 prize distrubtion for draw ${drawId}...`)

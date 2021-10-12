@@ -45,9 +45,9 @@ export async function drawBeaconHandleDrawStartAndComplete(config: Config, relay
           speed: config.speed,
           gasLimit: config.gasLimit,
         });
-        status = 1;
         debug(`Started Draw ${nextDrawId}: ${txRes.hash}`)
       }
+      status = 1;
       msg = 'DrawBeacon/can-start-draw';
     }
 
@@ -62,10 +62,10 @@ export async function drawBeaconHandleDrawStartAndComplete(config: Config, relay
           speed: config.speed,
           gasLimit: config.gasLimit,
         });
-        status = 1;
         completedDraw = true;
         debug(`Completed Draw ${nextDrawId}: ${txRes.hash}`)
       }
+      status = 1;
       msg = 'DrawBeacon/can-complete-draw';
     }
 
