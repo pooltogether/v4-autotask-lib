@@ -19,8 +19,8 @@ export interface Config {
   chainId: number;
   network: string;
   apiKey: string | undefined;
-  speed?: "slow" | "normal" | "fast" = 'normal';
-  gasLimit?: number | string = 5000;
+  speed?: "slow" | "normal" | "fast";
+  gasLimit?: number | string;
 }
 
 export interface Relayer {
@@ -31,9 +31,11 @@ export interface Draw {
   drawId: number;
   beaconPeriodSeconds: number;
 }
+
 export interface ContractPrizeTierHistory {
   getPrizeTier: Function
 }
 export interface ReserverContract {
   getReserveAccumulatedBetween: Function
 }
+

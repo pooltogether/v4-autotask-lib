@@ -1,4 +1,4 @@
-export * from './utils'
+export * as utils from './utils'
 
 // DrawBeacon
 export * from './drawBeaconHandleDrawStartAndComplete'

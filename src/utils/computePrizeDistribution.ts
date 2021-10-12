@@ -1,16 +1,28 @@
 import { computeCardinality } from './computeCardinality'
 import { calculatePicks } from './calculatePicks'
-import { Draw, ContractPrizeTierHistory, ReserverContract } from '../types'
+import { Draw } from '../types'
+import { Contract } from '@ethersproject/contracts'
 const debug = require('debug')('pt:autotask')
+
+interface IPrizeDistribution {
+    bitRangeSize: any;
+    matchCardinality: any;
+    tiers: any;
+    maxPicksPerUser: any;
+    numberOfPicks: any;
+    startTimestampOffset: any;
+    prize: any;
+    endTimestampOffset: any;
+}
 
 export async function computePrizeDistribution(
     draw: Draw,
-    prizeTierHistory: ContractPrizeTierHistory,
-    reserveToCalculate: ReserverContract,
-    otherReserve: ReserverContract,
+    prizeTierHistory: Contract,
+    reserveToCalculate: Contract,
+    otherReserve: Contract,
     totalSupplyTickets: number,
     totalSupplyDecimals: number
-) {
+): Promise<IPrizeDistribution> {
     const prizeTier = await prizeTierHistory.getPrizeTier(draw.drawId)
 
     const beaconPeriod = draw.beaconPeriodSeconds
