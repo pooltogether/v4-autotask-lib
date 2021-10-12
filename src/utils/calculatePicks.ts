@@ -1,21 +1,21 @@
 import { Contract } from '@ethersproject/contracts'
 import { ethers } from 'ethers'
 
-export async function calculatePicks(bitRange: number, cardinality: number, startTime: number, endTime: number, reserveToCalculate: Contract, otherReserve: Contract) {
+export async function calculatePicks(bitRange: number, cardinality: number, startTime: number, endTime: number, ticket: Contract, otherTicket: Contract) {
   const totalPicks = (2 ** bitRange) ** cardinality
-  const reserveAccumulated = await reserveToCalculate.getReserveAccumulatedBetween(startTime, endTime)
-  // console.log(`${reserveToCalculate.address} reserveAccumulated ${ethers.utils.formatEther(reserveAccumulated)}`)
-  const otherReserveAccumulated = await otherReserve.getReserveAccumulatedBetween(startTime, endTime)
-  // console.log(`${otherReserve.address} otherReserveAccumulated ${ethers.utils.formatEther(otherReserveAccumulated)}`)
+  const ticketTotalSupply = (await ticket.getAverageTotalSuppliesBetween([startTime], [endTime]))[0]
+  
+  const otherTicketTotalSupply = (await otherTicket.getAverageTotalSuppliesBetween([startTime], [endTime]))[0]
+  
   let numberOfPicks
-  if (reserveAccumulated.gt('0')) {
-    // console.log(`reserveAccumulated gt 0 ..`)
-    numberOfPicks = reserveAccumulated.mul(totalPicks).div(otherReserveAccumulated.add(reserveAccumulated))
+  if (ticketTotalSupply.gt('0')) {
+    
+    numberOfPicks = ticketTotalSupply.mul(totalPicks).div(otherTicketTotalSupply.add(ticketTotalSupply))
   } else {
-    // console.log(`calculatePicks setting numberOfPicks: 0`)
+    
     numberOfPicks = ethers.BigNumber.from('0')
   }
-  // console.log(`returning numberOfPicks ${Math.floor(numberOfPicks)}`)
+  console.log(`returning numberOfPicks ${Math.floor(numberOfPicks)}`)
   return Math.floor(numberOfPicks)
 }
 

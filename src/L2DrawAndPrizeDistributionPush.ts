@@ -68,8 +68,8 @@ export async function L2DrawAndPrizeDistributionPush(config: L2DrawAndPrizeDistr
       const prizeDistribution = await computePrizeDistribution(
         draw,
         prizeTierHistory,
-        reserveL1,
-        reserveL2,
+        ticketL1,
+        ticketL2,
         totalSupplyTickets,
         decimals
       )
