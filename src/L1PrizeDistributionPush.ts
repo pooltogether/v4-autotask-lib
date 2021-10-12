@@ -29,8 +29,6 @@ export async function L1PrizeDistributionPush(config: L1PrizeDistributionPushCon
   const provider = getInfuraProvider(config.network, config.apiKey)
 
   // INITIALIZE Contracts
-  const reserveL1 = getContract('Reserve', config.L1.chainId, provider, contracts)
-  const reserveL2 = getContract('Reserve', config.L2.chainId, provider, contracts)
   const drawBuffer = getContract('DrawBuffer', config.L1.chainId, provider, contracts)
   const prizeDistributionBuffer = getContract('PrizeDistributionBuffer', config.L1.chainId, provider, contracts)
   const drawCalculatorTimelock = getContract('DrawCalculatorTimelock', config.L1.chainId, provider, contracts)
@@ -70,8 +68,8 @@ export async function L1PrizeDistributionPush(config: L1PrizeDistributionPushCon
       const prizeDistribution = await computePrizeDistribution(
         draw,
         prizeTierHistory,
-        reserveL1,
-        reserveL2,
+        ticketL1,
+        ticketL2,
         totalSupplyTickets,
         decimals
       )
