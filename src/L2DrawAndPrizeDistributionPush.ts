@@ -12,8 +12,6 @@ export async function L2DrawAndPrizeDistributionPush(contracts: ContractsBlob, c
   const providerL2 = getJsonRpcProvider(`https://${config.L2.network}.infura.io/v3/${config.apiKey}`)
 
   // INITIALIZE Contracts
-  // const reserveL1 = getContract('Reserve', config.L1.chainId, providerL1, contracts)
-  // const reserveL2 = getContract('Reserve', config.L2.chainId, providerL2, contracts)
   const drawBuffer = getContract('DrawBuffer', config.L1.chainId, providerL1, contracts)
   const prizeDistributionBuffer = getContract('PrizeDistributionBuffer', config.L1.chainId, providerL1, contracts)
   const drawCalculatorTimelock = getContract('DrawCalculatorTimelock', config.L1.chainId, providerL1, contracts)

@@ -5,7 +5,7 @@ const debug = require('debug')('pt-autotask')
 
 export async function PrizeFlushAndReserveCheckpoint(contracts: ContractsBlob, config: Config, relayer?: Relayer): Promise<ActionState> {
   const provider = getInfuraProvider(config.network, config.apiKey)
-  const prizeFlush = getContract('DrawBuffer', config.chainId, provider, contracts)
+  const prizeFlush = getContract('PrizeFlush', config.chainId, provider, contracts)
 
   let response;
   let status = 0
