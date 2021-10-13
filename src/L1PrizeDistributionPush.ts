@@ -41,6 +41,7 @@ export async function L1PrizeDistributionPush(config: L1PrizeDistributionPushCon
     let tx;
     let txRes;
     let status = 0;
+    let response;
     let newestDraw
     let msg = 'L1TimelockTrigger/no-action-required';
 
@@ -54,9 +55,7 @@ export async function L1PrizeDistributionPush(config: L1PrizeDistributionPushCon
     try {
       const { drawId } = await prizeDistributionBuffer.getNewestPrizeDistribution()
       lastPrizeDistributionDrawId = drawId
-    } catch (e) {
-
-    }
+    } catch (e) { }
 
     const timelockElapsed = await drawCalculatorTimelock.hasElapsed()
     debug(`Last L1 prize distribution draw id is ${lastPrizeDistributionDrawId}`)
@@ -75,8 +74,8 @@ export async function L1PrizeDistributionPush(config: L1PrizeDistributionPushCon
       )
 
       // IF executable and Relayer is available.
+      tx = await l1TimelockTrigger.populateTransaction.push(draw.drawId, prizeDistribution)
       if (config.execute && relayer) {
-        tx = await l1TimelockTrigger.populateTransaction.push(draw.drawId, prizeDistribution)
         debug(`Pushing L1 prize distrubtion for draw ${drawId}...`)
         txRes = await relayer.sendTransaction({
           data: tx.data,
@@ -84,21 +83,24 @@ export async function L1PrizeDistributionPush(config: L1PrizeDistributionPushCon
           speed: 'fast',
           gasLimit: 500000,
         });
-        debug(`Propagated prize distribution for draw ${draw.drawId} to L1: `, txRes.hash)
         status = 1;
+        msg = 'L1PrizeDistributionPush/pushed'
+        response = await provider.getTransaction(txRes.hash);
+        debug(`Propagated prize distribution for draw ${draw.drawId} to L1: `, txRes.hash)
       }
     }
 
     return {
-      status: status,
       err: false,
-      msg: msg,
+      msg,
+      status,
+      response,
       transaction: {
         data: tx?.data,
         to: tx?.to,
       },
       data: {
-
+        newestDraw
       },
     }
   } catch (error) {

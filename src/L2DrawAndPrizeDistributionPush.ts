@@ -75,8 +75,8 @@ export async function L2DrawAndPrizeDistributionPush(config: L2DrawAndPrizeDistr
       )
 
       // IF executable and Relayer is available.
+      tx = await l2TimelockTrigger.populateTransaction.push(draw.drawId, prizeDistribution)
       if (config.execute && relayer) {
-        tx = await l2TimelockTrigger.populateTransaction.push(draw.drawId, prizeDistribution)
         debug(`Pushing L1 prize distrubtion for draw ${drawId}...`)
         txRes = await relayer.sendTransaction({
           data: tx.data,

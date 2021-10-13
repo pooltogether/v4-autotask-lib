@@ -31,12 +31,14 @@ export async function drawBeaconHandleDrawStartAndComplete(config: Config, relay
 
     let tx;
     let txRes;
+    let response;
     let status = 0;
     msg = 'DrawBeacon/draw-in-progress';
 
     // Action : Can Start Draw
     if (await drawBeacon.canStartDraw()) {
       tx = await drawBeacon.populateTransaction.startDraw()
+      // IF executable and Relayer is available.
       if (config.execute && relayer) {
         debug(`Starting draw ${nextDrawId}...`)
         txRes = await relayer.sendTransaction({
@@ -53,7 +55,11 @@ export async function drawBeaconHandleDrawStartAndComplete(config: Config, relay
 
     // Action : Can Complete Draw
     if (await drawBeacon.canCompleteDraw()) {
+
+      // Populate Transation: encode data without submitting to provider.
       tx = await drawBeacon.populateTransaction.completeDraw()
+
+      // IF executable and Relayer is available.
       if (config.execute && relayer) {
         debug(`Completing draw ${nextDrawId}...`)
         txRes = await relayer.sendTransaction({
@@ -62,6 +68,7 @@ export async function drawBeaconHandleDrawStartAndComplete(config: Config, relay
           speed: config.speed,
           gasLimit: config.gasLimit,
         });
+        response = await provider.getTransaction(txRes.hash);
         completedDraw = true;
         debug(`Completed Draw ${nextDrawId}: ${txRes.hash}`)
       }
@@ -70,9 +77,10 @@ export async function drawBeaconHandleDrawStartAndComplete(config: Config, relay
     }
 
     return {
-      status: status, // 0 or 1
+      status: status,
       err: false,
       msg: msg,
+      response,
       transaction: {
         data: tx?.data,
         to: tx?.to,

@@ -1,8 +1,11 @@
+import { Transaction } from "@ethersproject/transactions";
+
 export interface ActionState {
   err: any;
   msg: any;
   data?: any;
   transaction?: any;
+  response?: Transaction;
   status: number;
 }
 
