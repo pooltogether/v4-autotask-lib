@@ -1,12 +1,9 @@
-// @ts-ignore
-import { ethers, Transaction } from 'ethers';
-import contracts from '@pooltogether/v4-testnet/testnet.json'
-import { ActionState, Relayer, Config } from './types'
-import getContract from './utils/getContract';
-import getInfuraProvider from "./utils/getInfuraProvider";
+import { ActionState, Config, ContractsBlob, Relayer } from './types'
+import { getContract } from './utils/getContract';
+import { getInfuraProvider } from "./utils/getInfuraProvider";
 const debug = require('debug')('pt-autotask')
 
-export async function PrizeFlushAndReserveCheckpoint(config: Config, relayer: Relayer): Promise<ActionState> {
+export async function PrizeFlushAndReserveCheckpoint(contracts: ContractsBlob, config: Config, relayer?: Relayer): Promise<ActionState> {
   const provider = getInfuraProvider(config.network, config.apiKey)
   const prizeFlush = getContract('DrawBuffer', config.chainId, provider, contracts)
 
@@ -24,7 +21,7 @@ export async function PrizeFlushAndReserveCheckpoint(config: Config, relayer: Re
       let txRes = await relayer.sendTransaction({
         data: txData.data,
         to: txData.to,
-        speed: 'fast',
+        speed: "fast",
         gasLimit: 500000,
       });
       status = 1;

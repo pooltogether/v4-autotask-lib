@@ -1,46 +1,32 @@
-// @ts-nocheck
-import contracts from '@pooltogether/v4-testnet/testnet.json'
-import { Config, ActionState, Relayer } from '../types'
+import { ethers } from 'ethers';
+import { ActionState, ConfigWithL2, ContractsBlob, Relayer } from './types'
 import { getContract } from './utils/getContract';
 import { getInfuraProvider } from "./utils/getInfuraProvider";
+import { getJsonRpcProvider } from "./utils/getJsonRpcProvider";
+import { computePrizeDistribution } from './utils/computePrizeDistribution';
 const debug = require('debug')('pt-autotask')
 
-interface L2DrawAndPrizeDistributionPushConfig {
-  chainId: number;
-  network: string;
-  apiKey: string | undefined;
-  speed?: "slow" | "normal" | "fast";
-  gasLimit?: number | string;
-  L1: {
-    chainId: number;
-    network: string;
-  },
-  L2: {
-    chainId: number;
-    network: string;
-  }
-}
-
-export async function L2DrawAndPrizeDistributionPush(config: L2DrawAndPrizeDistributionPushConfig, relayer: Relayer): Promise<ActionState> {
-
-  // Connects to Infura provider. @TODO // Handle support for multiple networks if neccesary
-  const provider = getInfuraProvider(config.network, config.apiKey)
+export async function L2DrawAndPrizeDistributionPush(contracts: ContractsBlob, config: ConfigWithL2, relayer?: Relayer): Promise<ActionState> {
+  // Connects to Infura provider. 
+  const providerL1 = getInfuraProvider(config.L1.network, config.apiKey)
+  const providerL2 = getJsonRpcProvider(`https://${config.L2.network}.infura.io/v3/${config.apiKey}`)
 
   // INITIALIZE Contracts
-  const reserveL1 = getContract('Reserve', config.L1.chainId, provider, contracts)
-  const reserveL2 = getContract('Reserve', config.L2.chainId, provider, contracts)
-  const drawBuffer = getContract('DrawBuffer', config.L1.chainId, provider, contracts)
-  const prizeDistributionBuffer = getContract('PrizeDistributionBuffer', config.L1.chainId, provider, contracts)
-  const drawCalculatorTimelock = getContract('DrawCalculatorTimelock', config.L1.chainId, provider, contracts)
-  const l2TimelockTrigger = getContract('L2TimelockTrigger', config.L1.chainId, provider, contracts)
-  const ticketL1 = getContract('Ticket', config.L1.chainId, provider, contracts)
-  const ticketL2 = getContract('Ticket', config.L2.chainId, provider, contracts)
-  const prizeTierHistory = getContract('PrizeTierHistory', config.L1.chainId, provider, contracts)
+  // const reserveL1 = getContract('Reserve', config.L1.chainId, providerL1, contracts)
+  // const reserveL2 = getContract('Reserve', config.L2.chainId, providerL2, contracts)
+  const drawBuffer = getContract('DrawBuffer', config.L1.chainId, providerL1, contracts)
+  const prizeDistributionBuffer = getContract('PrizeDistributionBuffer', config.L1.chainId, providerL1, contracts)
+  const drawCalculatorTimelock = getContract('DrawCalculatorTimelock', config.L1.chainId, providerL1, contracts)
+  const l2TimelockTrigger = getContract('L2TimelockTrigger', config.L2.chainId, providerL2, contracts)
+  const ticketL1 = getContract('Ticket', config.L1.chainId, providerL1, contracts)
+  const ticketL2 = getContract('Ticket', config.L2.chainId, providerL2, contracts)
+  const prizeTierHistory = getContract('PrizeTierHistory', config.L1.chainId, providerL1, contracts)
 
   try {
     let tx;
     let txRes;
     let status = 0;
+    let response;
     let newestDraw
     let msg = 'L2TimelockTrigger/no-action-required';
 
@@ -59,7 +45,7 @@ export async function L2DrawAndPrizeDistributionPush(config: L2DrawAndPrizeDistr
     }
 
     const timelockElapsed = await drawCalculatorTimelock.hasElapsed()
-    debug(`Last L1 prize distribution draw id is ${lastPrizeDistributionDrawId}`)
+    debug(`Last L1 PrizeDistribution draw id is ${lastPrizeDistributionDrawId}`)
 
     // If the prize distribution hasn't propagated and we're allowed to push
     if (lastPrizeDistributionDrawId < newestDraw.drawId && timelockElapsed) {
@@ -76,6 +62,7 @@ export async function L2DrawAndPrizeDistributionPush(config: L2DrawAndPrizeDistr
 
       // IF executable and Relayer is available.
       tx = await l2TimelockTrigger.populateTransaction.push(draw.drawId, prizeDistribution)
+
       if (config.execute && relayer) {
         debug(`Pushing L1 prize distrubtion for draw ${drawId}...`)
         txRes = await relayer.sendTransaction({
@@ -84,21 +71,23 @@ export async function L2DrawAndPrizeDistributionPush(config: L2DrawAndPrizeDistr
           speed: 'fast',
           gasLimit: 500000,
         });
-        debug(`Propagated prize distribution for draw ${draw.drawId} to L1: `, txRes.hash)
         status = 1;
+        response = await providerL2.getTransaction(txRes.hash);
+        debug(`Propagated prize distribution for draw ${draw.drawId} to L1: `, txRes.hash)
       }
     }
 
     return {
-      status: status,
       err: false,
-      msg: msg,
+      msg,
+      status,
+      response,
+      data: {
+        newestDraw
+      },
       transaction: {
         data: tx?.data,
         to: tx?.to,
-      },
-      data: {
-
       },
     }
   } catch (error) {

@@ -1,11 +1,10 @@
-import contracts from '@pooltogether/v4-testnet/testnet.json'
-import { Config, ActionState, Relayer } from './types'
+import { ActionState, Config, ContractsBlob, Relayer } from './types'
 import { getContract } from './utils/getContract';
 import { getInfuraProvider } from "./utils/getInfuraProvider";
 
 const debug = require('debug')('pt-autotask')
 
-export async function drawBeaconHandleDrawStartAndComplete(config: Config, relayer?: Relayer): Promise<ActionState> {
+export async function drawBeaconHandleDrawStartAndComplete(contracts: ContractsBlob, config: Config, relayer?: Relayer): Promise<ActionState> {
   const provider = getInfuraProvider(config.network, config.apiKey)
   const drawBeacon = getContract('DrawBeacon', config.chainId, provider, contracts);
 

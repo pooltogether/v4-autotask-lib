@@ -24,9 +24,26 @@ export interface Config {
   chainId: number;
   network: string;
   apiKey: string | undefined;
-  speed?: "slow" | "normal" | "fast";
+  speed?: "slow" | "normal" | "fast" | string;
   gasLimit?: number | string;
   execute?: Boolean;
+}
+
+export interface ConfigWithL2 {
+  chainId: number;
+  network: string;
+  apiKey: string | undefined;
+  speed?: "slow" | "normal" | "fast" | string;
+  gasLimit?: number | string;
+  execute?: Boolean;
+  L1: {
+    chainId: number;
+    network: string;
+  },
+  L2: {
+    chainId: number;
+    network: string;
+  }
 }
 
 export interface Relayer {

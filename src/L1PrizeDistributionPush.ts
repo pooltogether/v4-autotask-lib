@@ -1,41 +1,24 @@
-// @ts-ignore
 import { ethers } from 'ethers';
-import contracts from '@pooltogether/v4-testnet/testnet.json'
-import { ActionState, Relayer } from './types'
-import getContract from './utils/getContract';
-import getInfuraProvider from "./utils/getInfuraProvider";
-import computePrizeDistribution from './utils/computePrizeDistribution';
+import { ActionState, ConfigWithL2, ContractsBlob, Relayer } from './types'
+import { getContract } from './utils/getContract';
+import { getInfuraProvider } from "./utils/getInfuraProvider";
+import { getJsonRpcProvider } from "./utils/getJsonRpcProvider";
+import { computePrizeDistribution } from './utils/computePrizeDistribution';
 const debug = require('debug')('pt-autotask')
 
-interface L1PrizeDistributionPushConfig {
-  chainId: number;
-  network: string;
-  apiKey: string | undefined;
-  speed?: "slow" | "normal" | "fast";
-  gasLimit?: number | string;
-  execute?: Boolean;
-  L1: {
-    chainId: number;
-    network: string;
-  },
-  L2: {
-    chainId: number;
-    network: string;
-  }
-}
-
-export async function L1PrizeDistributionPush(config: L1PrizeDistributionPushConfig, relayer: Relayer): Promise<ActionState> {
-  // Connects to Infura provider. @TODO // Handle support for multiple networks if neccesary
-  const provider = getInfuraProvider(config.network, config.apiKey)
+export async function L1PrizeDistributionPush(contracts: ContractsBlob, config: ConfigWithL2, relayer?: Relayer): Promise<ActionState> {
+  // Connects to Infura provider.
+  const providerL1 = getInfuraProvider(config.L1.network, config.apiKey)
+  const providerL2 = getJsonRpcProvider(`https://${config.L2.network}.infura.io/v3/${config.apiKey}`)
 
   // INITIALIZE Contracts
-  const drawBuffer = getContract('DrawBuffer', config.L1.chainId, provider, contracts)
-  const prizeDistributionBuffer = getContract('PrizeDistributionBuffer', config.L1.chainId, provider, contracts)
-  const drawCalculatorTimelock = getContract('DrawCalculatorTimelock', config.L1.chainId, provider, contracts)
-  const l1TimelockTrigger = getContract('L1TimelockTrigger', config.L1.chainId, provider, contracts)
-  const ticketL1 = getContract('Ticket', config.L1.chainId, provider, contracts)
-  const ticketL2 = getContract('Ticket', config.L2.chainId, provider, contracts)
-  const prizeTierHistory = getContract('PrizeTierHistory', config.L1.chainId, provider, contracts)
+  const drawBuffer = getContract('DrawBuffer', config.L1.chainId, providerL1, contracts)
+  const prizeDistributionBuffer = getContract('PrizeDistributionBuffer', config.L1.chainId, providerL1, contracts)
+  const drawCalculatorTimelock = getContract('DrawCalculatorTimelock', config.L1.chainId, providerL1, contracts)
+  const l1TimelockTrigger = getContract('L1TimelockTrigger', config.L1.chainId, providerL1, contracts)
+  const ticketL1 = getContract('Ticket', config.L1.chainId, providerL1, contracts)
+  const ticketL2 = getContract('Ticket', config.L2.chainId, providerL2, contracts)
+  const prizeTierHistory = getContract('PrizeTierHistory', config.L1.chainId, providerL1, contracts)
 
   try {
     let tx;
@@ -75,6 +58,7 @@ export async function L1PrizeDistributionPush(config: L1PrizeDistributionPushCon
 
       // IF executable and Relayer is available.
       tx = await l1TimelockTrigger.populateTransaction.push(draw.drawId, prizeDistribution)
+
       if (config.execute && relayer) {
         debug(`Pushing L1 prize distrubtion for draw ${drawId}...`)
         txRes = await relayer.sendTransaction({
@@ -85,7 +69,7 @@ export async function L1PrizeDistributionPush(config: L1PrizeDistributionPushCon
         });
         status = 1;
         msg = 'L1PrizeDistributionPush/pushed'
-        response = await provider.getTransaction(txRes.hash);
+        response = await providerL1.getTransaction(txRes.hash);
         debug(`Propagated prize distribution for draw ${draw.drawId} to L1: `, txRes.hash)
       }
     }
@@ -95,12 +79,12 @@ export async function L1PrizeDistributionPush(config: L1PrizeDistributionPushCon
       msg,
       status,
       response,
+      data: {
+        newestDraw
+      },
       transaction: {
         data: tx?.data,
         to: tx?.to,
-      },
-      data: {
-        newestDraw
       },
     }
   } catch (error) {
