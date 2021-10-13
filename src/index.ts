@@ -1,8 +1,8 @@
 export * as utils from './utils'
 
 // DrawBeacon
-export * from './DrawBeaconHandleDrawStartAndComplete'
-export * as beaconAutotask from './DrawBeaconHandleDrawStartAndComplete'
+export * from './drawBeaconHandleDrawStartAndComplete'
+export * as beaconAutotask from './drawBeaconHandleDrawStartAndComplete'
 
 // L1PrizeDistributionPush
 export * from './L1PrizeDistributionPush'
@@ -13,9 +13,9 @@ export * from './L2DrawAndPrizeDistributionPush'
 export * as L2SyncAutotask from './L2DrawAndPrizeDistributionPush'
 
 // GenerateYieldForPrizePool
-export * from './GenerateYieldForPrizePool'
-export * as yieldAutotask from './GenerateYieldForPrizePool'
+export * from './generateYieldForPrizePool'
+export * as yieldAutotask from './generateYieldForPrizePool'
 
 // PrizeFlushAndReserveCheckpoint
-export * from './PrizeFlushAndReserveCheckpoint'
-export * as flushAutotask from './PrizeFlushAndReserveCheckpoint'
+export * from './prizeFlushAndReserveCheckpoint'
+export * as flushAutotask from './prizeFlushAndReserveCheckpoint'
