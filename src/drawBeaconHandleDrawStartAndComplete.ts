@@ -1,6 +1,6 @@
 import { ActionState, Config, ContractsBlob, Relayer } from './types'
-import { getContract } from './utils/getContract';
-import { getInfuraProvider } from "./utils/getInfuraProvider";
+import { getContract } from './get/getContract';
+import { getInfuraProvider } from "./get/getInfuraProvider";
 
 const debug = require('debug')('pt-autotask')
 

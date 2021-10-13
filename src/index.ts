@@ -1,3 +1,4 @@
+export * from './get'
 export * as utils from './utils'
 
 // DrawBeacon

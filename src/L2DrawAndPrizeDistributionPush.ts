@@ -1,8 +1,8 @@
 import { ethers } from 'ethers';
 import { ActionState, ConfigWithL2, ContractsBlob, Relayer } from './types'
-import { getContract } from './utils/getContract';
-import { getInfuraProvider } from "./utils/getInfuraProvider";
-import { getJsonRpcProvider } from "./utils/getJsonRpcProvider";
+import { getContract } from './get/getContract';
+import { getInfuraProvider } from "./get/getInfuraProvider";
+import { getJsonRpcProvider } from "./get/getJsonRpcProvider";
 import { computePrizeDistribution } from './utils/computePrizeDistribution';
 const debug = require('debug')('pt-autotask')
 

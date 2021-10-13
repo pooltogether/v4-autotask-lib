@@ -1,8 +1,8 @@
 import { ethers } from 'ethers';
 import { ActionState, ConfigWithL2, ContractsBlob, Relayer } from './types'
-import { getContract } from './utils/getContract';
-import { getInfuraProvider } from "./utils/getInfuraProvider";
-import { getJsonRpcProvider } from "./utils/getJsonRpcProvider";
+import { getContract } from './get/getContract';
+import { getInfuraProvider } from "./get/getInfuraProvider";
+import { getJsonRpcProvider } from "./get/getJsonRpcProvider";
 import { computePrizeDistribution } from './utils/computePrizeDistribution';
 const debug = require('debug')('pt-autotask')
 
@@ -40,11 +40,19 @@ export async function L1PrizeDistributionPush(contracts: ContractsBlob, config: 
       lastPrizeDistributionDrawId = drawId
     } catch (e) { }
 
-    const timelockElapsed = await drawCalculatorTimelock.hasElapsed()
+    const getTimelock = await drawCalculatorTimelock.getTimelock()
+    const getTimelockDuration = await drawCalculatorTimelock.getTimelockDuration()
+    const hasElapsed = await drawCalculatorTimelock.hasElapsed()
     debug(`Last L1 prize distribution draw id is ${lastPrizeDistributionDrawId}`)
 
+    debug(`Last PrizeDistribution Draw ID: ${lastPrizeDistributionDrawId}`)
+    debug(`Newest DrawID: ${newestDraw.drawId} `);
+    debug(`Lock Elapsed: ${hasElapsed} `);
+    debug(`Timelock: ${getTimelock}`);
+    debug(`Timelock Duration: ${getTimelockDuration} `);
+
     // If the prize distribution hasn't propagated and we're allowed to push
-    if (lastPrizeDistributionDrawId < newestDraw.drawId && timelockElapsed) {
+    if (lastPrizeDistributionDrawId < newestDraw.drawId) {
       const drawId = lastPrizeDistributionDrawId + 1
       const draw = await drawBuffer.getDraw(drawId)
       const prizeDistribution = await computePrizeDistribution(
@@ -63,7 +71,7 @@ export async function L1PrizeDistributionPush(contracts: ContractsBlob, config: 
         debug(`Pushing L1 prize distrubtion for draw ${drawId}...`)
         txRes = await relayer.sendTransaction({
           data: tx.data,
-          to: draw.address,
+          to: tx.data,
           speed: 'fast',
           gasLimit: 500000,
         });
@@ -72,6 +80,8 @@ export async function L1PrizeDistributionPush(contracts: ContractsBlob, config: 
         response = await providerL1.getTransaction(txRes.hash);
         debug(`Propagated prize distribution for draw ${draw.drawId} to L1: `, txRes.hash)
       }
+      status = 1;
+      msg = 'L1PrizeDistributionPush/push-prize-distribution'
     }
 
     return {

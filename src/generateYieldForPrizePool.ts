@@ -1,19 +1,18 @@
 // @ts-ignore
 import { ethers, Transaction } from 'ethers';
-import contracts from '@pooltogether/v4-testnet/testnet.json'
-import ERC20 from '@pooltogether/v4-testnet/artifacts/@pooltogether/v4-core/contracts/interfaces/IControlledToken.sol/IControlledToken.json'
-import { ActionState, Relayer, Config } from './types'
-import getContract from './utils/getContract';
-import getInfuraProvider from "./utils/getInfuraProvider";
+import ERC20 from '@pooltogether/v4-core/abis/IControlledToken.json'
+import { ActionState, Relayer, Config, ContractsBlob } from './types'
+import getContract from './get/getContract';
+import getInfuraProvider from "./get/getInfuraProvider";
 const debug = require('debug')('pt-autotask')
 
 const APR_PER_MINUTE = 133
 const APR_PER_CALL_FIXED_POINT_9 = 5 * APR_PER_MINUTE // APR for 5 minute frequency
 
-export async function GenerateYieldForPrizePool(config: Config, relayer: Relayer): Promise<ActionState> {
+export async function GenerateYieldForPrizePool(contracts: ContractsBlob, config: Config, relayer: Relayer): Promise<ActionState> {
   const provider = getInfuraProvider(config.network, config.apiKey)
   const mockYieldSource = getContract('MockYieldSource', config.chainId, provider, contracts)
-  const depositToken = new ethers.Contract(await mockYieldSource.getToken(), ERC20.abi, provider)
+  const depositToken = new ethers.Contract(await mockYieldSource.getToken(), ERC20, provider)
 
   let response;
   let status = 0
