@@ -28,6 +28,7 @@ export async function computePrizeDistribution(
     const beaconPeriod = draw.beaconPeriodSeconds
     const startTimestampOffset = beaconPeriod
     const endTimestampOffset = 300 // say five minutes of offset.  enough for clock drift?
+    const expiryDuration = 60 * 24 * 60 * 60 // 60 days
 
     debug('computePrizeDistribution: computing cardinality')
     const matchCardinality = computeCardinality(prizeTier.bitRangeSize, totalSupplyTickets, totalSupplyDecimals)
@@ -42,6 +43,7 @@ export async function computePrizeDistribution(
         matchCardinality,
         tiers: prizeTier.tiers,
         maxPicksPerUser: prizeTier.maxPicksPerUser,
+        expiryDuration,
         numberOfPicks,
         startTimestampOffset,
         prize: prizeTier.prize,
