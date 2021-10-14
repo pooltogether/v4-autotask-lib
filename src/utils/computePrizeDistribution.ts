@@ -12,6 +12,7 @@ interface IPrizeDistribution {
     maxPicksPerUser: any;
     numberOfPicks: any;
     startTimestampOffset: any;
+    expiryDuration: any;
     prize: any;
     endTimestampOffset: any;
 }
@@ -28,7 +29,7 @@ export async function computePrizeDistribution(
 
     const beaconPeriod = draw.beaconPeriodSeconds
     const startTimestampOffset = beaconPeriod
-    const endTimestampOffset = 30 // seconds of offset.  enough for clock drift between polygon and ethereum?
+    const endTimestampOffset = prizeTier.endTimestampOffset
 
     const decimals = await ticketsToCalculate.decimals()
 
@@ -54,7 +55,7 @@ export async function computePrizeDistribution(
 
     debug(`number of picks is ${numberOfPicks}`)
 
-    const prizeDistribution = {
+    const prizeDistribution : IPrizeDistribution = {
         bitRangeSize: prizeTier.bitRangeSize,
         matchCardinality,
         tiers: prizeTier.tiers,
