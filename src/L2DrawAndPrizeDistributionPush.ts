@@ -13,8 +13,8 @@ export async function L2DrawAndPrizeDistributionPush(contracts: ContractsBlob, c
 
   // INITIALIZE Contracts
   const drawBuffer = getContract('DrawBuffer', config.L1.chainId, providerL1, contracts)
-  const prizeDistributionBuffer = getContract('PrizeDistributionBuffer', config.L1.chainId, providerL1, contracts)
-  const drawCalculatorTimelock = getContract('DrawCalculatorTimelock', config.L1.chainId, providerL1, contracts)
+  const prizeDistributionBufferL2 = getContract('PrizeDistributionBuffer', config.L2.chainId, providerL2, contracts)
+  const drawCalculatorTimelock = getContract('DrawCalculatorTimelock', config.L2.chainId, providerL2, contracts)
   const l2TimelockTrigger = getContract('L2TimelockTrigger', config.L2.chainId, providerL2, contracts)
   const ticketL1 = getContract('Ticket', config.L1.chainId, providerL1, contracts)
   const ticketL2 = getContract('Ticket', config.L2.chainId, providerL2, contracts)
@@ -36,14 +36,14 @@ export async function L2DrawAndPrizeDistributionPush(contracts: ContractsBlob, c
     /// L1 Prize Distribution (L1 Trigger)
     let lastPrizeDistributionDrawId = 0
     try {
-      const { drawId } = await prizeDistributionBuffer.getNewestPrizeDistribution()
+      const { drawId } = await prizeDistributionBufferL2.getNewestPrizeDistribution()
       lastPrizeDistributionDrawId = drawId
     } catch (e) {
-
+      debug(e)
     }
 
     const timelockElapsed = await drawCalculatorTimelock.hasElapsed()
-    debug(`Last L1 PrizeDistribution draw id is ${lastPrizeDistributionDrawId}`)
+    debug(`Last L2 PrizeDistribution Draw ID is ${lastPrizeDistributionDrawId}`)
     debug(lastPrizeDistributionDrawId)
     debug(newestDraw.drawId)
     debug(timelockElapsed)
@@ -53,16 +53,17 @@ export async function L2DrawAndPrizeDistributionPush(contracts: ContractsBlob, c
       const drawId = lastPrizeDistributionDrawId + 1
       const draw = await drawBuffer.getDraw(drawId)
       debug("Draw: ", draw)
+
       const prizeDistribution = await computePrizeDistribution(
         draw,
         prizeTierHistory,
         ticketL1,
         ticketL2
       )
+
       debug("PrizeDistribution: ", prizeDistribution)
 
       tx = await l2TimelockTrigger.populateTransaction.push(draw, prizeDistribution)
-
       // IF executable and Relayer is available.
       if (config.execute && relayer) {
         debug(`Pushing L2 prize distrubtion for draw ${drawId}...`)
@@ -72,10 +73,11 @@ export async function L2DrawAndPrizeDistributionPush(contracts: ContractsBlob, c
           speed: 'fast',
           gasLimit: 500000,
         });
-        status = 1;
         response = await providerL2.getTransaction(txRes.hash);
         debug(`Propagated prize distribution for draw ${draw} to L2: `, txRes.hash)
       }
+      msg = 'L2TimelockTrigger/push-prize-distribution';
+      status = 1;
     }
 
     return {

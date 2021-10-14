@@ -54,6 +54,7 @@ export interface Draw {
   drawId: number;
   beaconPeriodSeconds: number;
   timestamp: number;
+  getBeaconPeriodSeconds: Function;
 }
 
 export interface ContractPrizeTierHistory {
