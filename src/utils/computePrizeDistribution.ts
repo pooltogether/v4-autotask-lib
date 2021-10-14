@@ -28,10 +28,11 @@ export async function computePrizeDistribution(
 
     const beaconPeriod = draw.beaconPeriodSeconds
     const startTimestampOffset = beaconPeriod
-    const endTimestampOffset = 30 // seconds of offset.  enough for clock drift between polygon and ethereum?
+
 
     const decimals = await ticketsToCalculate.decimals()
 
+    const endTimestampOffset = prizeTier.endTimestampOffset
     const startTime = draw.timestamp - startTimestampOffset
     const endTime = draw.timestamp - endTimestampOffset
 
@@ -41,6 +42,7 @@ export async function computePrizeDistribution(
     const combinedTotalSupply = ticketAverage[0].add(otherTicketAverage[0])
 
     const matchCardinality = computeCardinality(prizeTier.bitRangeSize, combinedTotalSupply, decimals)
+    const expiryDuration = prizeTier.expiryDuration
 
     debug(`cardinality is ${matchCardinality}`)
 
@@ -59,11 +61,11 @@ export async function computePrizeDistribution(
         matchCardinality,
         tiers: prizeTier.tiers,
         maxPicksPerUser: prizeTier.maxPicksPerUser,
+        expiryDuration,
         numberOfPicks,
         startTimestampOffset,
         prize: prizeTier.prize,
         endTimestampOffset,
-        expiryDuration: prizeTier.validityDuration
     }
 
     debug(`prizeDistribution: `, prizeDistribution)
