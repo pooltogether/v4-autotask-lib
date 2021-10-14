@@ -11,6 +11,7 @@ interface IPrizeDistribution {
     tiers: any;
     maxPicksPerUser: any;
     numberOfPicks: any;
+    expiryDuration: any;
     startTimestampOffset: any;
     prize: any;
     endTimestampOffset: any;
@@ -55,7 +56,7 @@ export async function computePrizeDistribution(
 
     debug(`number of picks is ${numberOfPicks}`)
 
-    const prizeDistribution = {
+    const prizeDistribution: IPrizeDistribution = {
         bitRangeSize: prizeTier.bitRangeSize,
         matchCardinality,
         tiers: prizeTier.tiers,
