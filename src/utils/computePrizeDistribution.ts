@@ -3,7 +3,7 @@ import { computeCardinality } from './computeCardinality'
 import { calculatePicks } from './calculatePicks'
 import { Draw } from '../types'
 import { Contract } from '@ethersproject/contracts'
-const debug = require('debug')('pt:autotask')
+const debug = require('debug')('pt-autotask')
 
 interface IPrizeDistribution {
     bitRangeSize: any;
@@ -23,7 +23,6 @@ export async function computePrizeDistribution(
     otherTickets: Contract,
 ): Promise<IPrizeDistribution> {
     debug('entered')
-
     const prizeTier = await prizeTierHistory.getPrizeTier(draw.drawId)
 
     const beaconPeriod = draw.beaconPeriodSeconds
@@ -38,12 +37,12 @@ export async function computePrizeDistribution(
 
     const ticketAverage = await ticketsToCalculate.getAverageTotalSuppliesBetween([startTime], [endTime])
     const otherTicketAverage = await otherTickets.getAverageTotalSuppliesBetween([startTime], [endTime])
+    debug("ticketAverage: ", ticketAverage)
+    debug("otherTicketAverage: ", otherTicketAverage)
 
     const combinedTotalSupply = ticketAverage[0].add(otherTicketAverage[0])
-
     const matchCardinality = computeCardinality(prizeTier.bitRangeSize, combinedTotalSupply, decimals)
-    const expiryDuration = prizeTier.expiryDuration
-
+    const expiryDuration = prizeTier.validityDuration
     debug(`cardinality is ${matchCardinality}`)
 
     debug(`total supply (combined): ${ethers.utils.formatUnits(combinedTotalSupply, decimals)}`)

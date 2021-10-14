@@ -48,11 +48,14 @@ export async function L1PrizeDistributionPush(contracts: ContractsBlob, config: 
     debug(`Newest DrawID: ${newestDraw.drawId} `);
     debug(`Lock Elapsed: ${hasElapsed} `);
     debug(`Timelock: ${getTimelock}`);
+    debug(`Timelock: ${getTimelock}`);
 
     // If the prize distribution hasn't propagated and we're allowed to push
     if (lastPrizeDistributionDrawId < newestDraw.drawId) {
       const drawId = lastPrizeDistributionDrawId + 1
+      debug(drawId)
       const draw = await drawBuffer.getDraw(drawId)
+      debug(draw)
       const prizeDistribution = await computePrizeDistribution(
         draw,
         prizeTierHistory,
