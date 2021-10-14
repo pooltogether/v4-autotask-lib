@@ -53,6 +53,7 @@ export interface Relayer {
 export interface Draw {
   drawId: number;
   beaconPeriodSeconds: number;
+  timestamp: number;
 }
 
 export interface ContractPrizeTierHistory {

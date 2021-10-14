@@ -17,6 +17,7 @@ export async function getL2TimelockState(contracts: ContractsBlob, config: Confi
     const timelock = await L2TimelockTrigger.timelock()
     const drawBuffer = await L2TimelockTrigger.drawBuffer()
     const prizeDistributionBuffer = await L2TimelockTrigger.prizeDistributionBuffer()
+
     return {
       status: 1,
       data: {

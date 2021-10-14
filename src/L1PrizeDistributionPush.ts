@@ -41,7 +41,6 @@ export async function L1PrizeDistributionPush(contracts: ContractsBlob, config: 
     } catch (e) { }
 
     const getTimelock = await drawCalculatorTimelock.getTimelock()
-    const getTimelockDuration = await drawCalculatorTimelock.getTimelockDuration()
     const hasElapsed = await drawCalculatorTimelock.hasElapsed()
     debug(`Last L1 prize distribution draw id is ${lastPrizeDistributionDrawId}`)
 
@@ -49,7 +48,6 @@ export async function L1PrizeDistributionPush(contracts: ContractsBlob, config: 
     debug(`Newest DrawID: ${newestDraw.drawId} `);
     debug(`Lock Elapsed: ${hasElapsed} `);
     debug(`Timelock: ${getTimelock}`);
-    debug(`Timelock Duration: ${getTimelockDuration} `);
 
     // If the prize distribution hasn't propagated and we're allowed to push
     if (lastPrizeDistributionDrawId < newestDraw.drawId) {
@@ -60,12 +58,9 @@ export async function L1PrizeDistributionPush(contracts: ContractsBlob, config: 
         prizeTierHistory,
         ticketL1,
         ticketL2,
-        totalSupplyTickets,
-        decimals
       )
-
       // IF executable and Relayer is available.
-      tx = await l1TimelockTrigger.populateTransaction.push(draw.drawId, prizeDistribution)
+      tx = await l1TimelockTrigger.populateTransaction.push(draw, prizeDistribution)
 
       if (config.execute && relayer) {
         debug(`Pushing L1 prize distrubtion for draw ${drawId}...`)

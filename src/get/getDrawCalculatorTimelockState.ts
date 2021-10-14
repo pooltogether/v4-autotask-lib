@@ -15,15 +15,13 @@ export async function getDrawCalculatorTimelockState(contracts: ContractsBlob, c
     const DrawCalculatorTimelock = getContract('DrawCalculatorTimelock', config.chainId, provider, contracts);
     debug('DrawCalculatorTimelock: ', DrawCalculatorTimelock.address)
     const timelock = await DrawCalculatorTimelock.getTimelock()
-    const timelockDuration = await DrawCalculatorTimelock.getTimelockDuration()
     const hasElapsed = await DrawCalculatorTimelock.hasElapsed()
 
     return {
       status: 1,
       data: {
         hasElapsed,
-        timelock,
-        timelockDuration
+        timelock
       },
     }
 
