@@ -57,8 +57,8 @@ export async function L2DrawAndPrizeDistributionPush(contracts: ContractsBlob, c
       const prizeDistribution = await computePrizeDistribution(
         draw,
         prizeTierHistory,
-        ticketL1,
-        ticketL2
+        ticketL2,
+        ticketL1
       )
 
       debug("PrizeDistribution: ", prizeDistribution)

@@ -32,7 +32,7 @@ export async function drawBeaconHandleDrawStartAndComplete(contracts: ContractsB
     let txRes;
     let response;
     let status = 0;
-    msg = 'DrawBeacon/draw-in-progress';
+    msg = 'DrawBeacon/draw-not-started';
 
     // Action : Can Start Draw
     if (await drawBeacon.canStartDraw()) {
