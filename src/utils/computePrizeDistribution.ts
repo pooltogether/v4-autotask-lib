@@ -43,7 +43,7 @@ export async function computePrizeDistribution(
 
     const combinedTotalSupply = ticketAverage[0].add(otherTicketAverage[0])
     const matchCardinality = computeCardinality(prizeTier.bitRangeSize, combinedTotalSupply, decimals)
-    const expiryDuration = prizeTier.validityDuration
+    const expiryDuration = prizeTier.expiryDuration
     debug(`cardinality is ${matchCardinality}`)
 
     debug(`total supply (combined): ${ethers.utils.formatUnits(combinedTotalSupply, decimals)}`)
