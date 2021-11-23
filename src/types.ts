@@ -1,3 +1,5 @@
+
+import { Provider } from '@ethersproject/abstract-provider'
 import { Transaction } from "@ethersproject/transactions";
 
 export interface ActionState {
@@ -39,10 +41,12 @@ export interface ConfigWithL2 {
   L1: {
     chainId: number;
     network: string;
+    providerUrl?: string;
   },
   L2: {
     chainId: number;
     network: string;
+    providerUrl?: string;
   }
 }
 

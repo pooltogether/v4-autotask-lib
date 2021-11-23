@@ -29,7 +29,6 @@ export async function computePrizeDistribution(
     const beaconPeriod = draw.beaconPeriodSeconds
     const startTimestampOffset = beaconPeriod
 
-
     const decimals = await ticketsToCalculate.decimals()
 
     const endTimestampOffset = prizeTier.endTimestampOffset

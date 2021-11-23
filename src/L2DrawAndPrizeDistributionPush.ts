@@ -1,15 +1,20 @@
 import { ethers } from 'ethers';
 import { ActionState, ConfigWithL2, ContractsBlob, Relayer } from './types'
 import { getContract } from './get/getContract';
-import { getInfuraProvider } from "./get/getInfuraProvider";
 import { getJsonRpcProvider } from "./get/getJsonRpcProvider";
 import { computePrizeDistribution } from './utils/computePrizeDistribution';
 const debug = require('debug')('pt-autotask')
 
 export async function L2DrawAndPrizeDistributionPush(contracts: ContractsBlob, config: ConfigWithL2, relayer?: Relayer): Promise<ActionState> {
-  // Connects to Infura provider. 
-  const providerL1 = getInfuraProvider(config.L1.network, config.apiKey)
-  const providerL2 = getJsonRpcProvider(`https://${config.L2.network}.infura.io/v3/${config.apiKey}`)
+  let providerL1;
+  if (config?.L1?.providerUrl) {
+    providerL1 = getJsonRpcProvider(config?.L1?.providerUrl)
+  }
+
+  let providerL2;
+  if (config?.L2?.providerUrl) {
+    providerL2 = getJsonRpcProvider(config?.L2?.providerUrl)
+  }
 
   // INITIALIZE Contracts
   const drawBuffer = getContract('DrawBuffer', config.L1.chainId, providerL1, contracts)
@@ -49,19 +54,20 @@ export async function L2DrawAndPrizeDistributionPush(contracts: ContractsBlob, c
     debug(timelockElapsed)
 
     // If the prize distribution hasn't propagated and we're allowed to push
+    const drawId = lastPrizeDistributionDrawId + 1;
+    const draw = await drawBuffer.getDraw(drawId)
+    debug("Draw: ", draw)
+
+    const prizeDistribution = await computePrizeDistribution(
+      draw,
+      prizeTierHistory,
+      ticketL2,
+      ticketL1
+    )
+
+    debug("PrizeDistribution: ", prizeDistribution)
+    console.log('PRIZE', prizeDistribution.prize.toString())
     if (lastPrizeDistributionDrawId < newestDraw.drawId && timelockElapsed) {
-      const drawId = lastPrizeDistributionDrawId + 1
-      const draw = await drawBuffer.getDraw(drawId)
-      debug("Draw: ", draw)
-
-      const prizeDistribution = await computePrizeDistribution(
-        draw,
-        prizeTierHistory,
-        ticketL2,
-        ticketL1
-      )
-
-      debug("PrizeDistribution: ", prizeDistribution)
 
       tx = await l2TimelockTrigger.populateTransaction.push(draw, prizeDistribution)
       // IF executable and Relayer is available.
