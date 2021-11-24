@@ -3,7 +3,7 @@ import { Contract } from 'ethers'
 import { ContractsBlob } from '../types'
 const debug = require('debug')('pt-autotask-lib')
 
-export function getContract(name: string, chainId: number, providerOrSigner: any, contractsBlob: ContractsBlob): Contract | never {
+export function getContract(name: string, chainId: number, providerOrSigner: any, contractsBlob: ContractsBlob): Contract | undefined {
   debug("name:", name); debug("chainId:", chainId);
   if (!name || !chainId) throw new Error(`Invalid Contract Parameters`)
   const contract = contractsBlob.contracts.filter((cont) => cont.type == name && cont.chainId == chainId)

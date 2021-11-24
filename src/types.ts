@@ -1,5 +1,6 @@
 
 import { Provider } from '@ethersproject/abstract-provider'
+import { BigNumber } from '@ethersproject/bignumber';
 import { Transaction } from "@ethersproject/transactions";
 
 export interface ActionState {
@@ -29,6 +30,20 @@ export interface Config {
   speed?: "slow" | "normal" | "fast" | string;
   gasLimit?: number | string;
   execute?: Boolean;
+}
+
+interface ProviderOptions {
+  chainId: number;
+  providerUrl: string;
+}
+export interface CalculateL2DrawAndPrizeDistributionConfig {
+  speed?: "slow" | "normal" | "fast" | string;
+  gasLimit?: number | string;
+  execute?: Boolean;
+  beaconChain: ProviderOptions
+  targetReceiverChain: ProviderOptions
+  otherReceiverChains?: ProviderOptions[]
+  otherTicketChains?: ProviderOptions[]
 }
 
 export interface ConfigWithL2 {
@@ -63,3 +78,32 @@ export interface ReserverContract {
   getReserveAccumulatedBetween: Function
 }
 
+export interface Draw {
+  drawId: number;
+  winningRandomNumber: BigNumber;
+  timestamp: number;
+  beaconPeriodStartedAt: number;
+  beaconPeriodSeconds: number;
+}
+
+export interface PrizeDistribution {
+  bitRangeSize: number;
+  matchCardinality: number;
+  startTimestampOffset?: number;
+  endTimestampOffset?: number;
+  maxPicksPerUser: number;
+  expiryDuration: number;
+  numberOfPicks: BigNumber;
+  tiers: Array<BigNumber | number>;
+  prize: BigNumber;
+}
+
+export interface PrizeTier {
+  bitRangeSize: number;
+  drawId: number;
+  maxPicksPerUser: number;
+  expiryDuration: number;
+  endTimestampOffset: number;
+  prize: BigNumber;
+  tiers: Array<number>;
+}

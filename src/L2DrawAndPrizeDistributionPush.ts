@@ -1,33 +1,49 @@
-import { ethers } from 'ethers';
-import { ActionState, ConfigWithL2, ContractsBlob, Relayer } from './types'
+import { BigNumber } from '@ethersproject/bignumber';
+import { Contract } from '@ethersproject/contracts';
+import { ActionState, CalculateL2DrawAndPrizeDistributionConfig, ContractsBlob, Relayer } from './types'
 import { getContract } from './get/getContract';
 import { getJsonRpcProvider } from "./get/getJsonRpcProvider";
-import { computePrizeDistribution } from './utils/computePrizeDistribution';
+import { computePrizeDistributionFromTicketAverageTotalSupplies, getMultiTicketAverageTotalSuppliesBetween, sumBigNumbers } from './utils'
 const debug = require('debug')('pt-autotask-lib')
 
-export async function L2DrawAndPrizeDistributionPush(contracts: ContractsBlob, config: ConfigWithL2, relayer?: Relayer): Promise<ActionState | undefined> {
-  let providerL1;
-  if (config?.L1?.providerUrl) {
-    providerL1 = getJsonRpcProvider(config?.L1?.providerUrl)
+export async function L2DrawAndPrizeDistributionPush(
+  contracts: ContractsBlob,
+  config: CalculateL2DrawAndPrizeDistributionConfig,
+  relayer?: Relayer
+): Promise<ActionState | undefined> {
+  let providerBeaconChain;
+  let providerTargetReceiverChain;
+
+  if (config?.beaconChain?.providerUrl) {
+    providerBeaconChain = getJsonRpcProvider(config?.beaconChain?.providerUrl)
   }
 
-  let providerL2;
-  if (config?.L2?.providerUrl) {
-    providerL2 = getJsonRpcProvider(config?.L2?.providerUrl)
+  if (config?.targetReceiverChain?.providerUrl) {
+    providerTargetReceiverChain = getJsonRpcProvider(config?.targetReceiverChain?.providerUrl)
   }
 
-  if (!providerL1 || !providerL2) {
+  // TODO: throw error if no provider?
+  if (!providerBeaconChain || !providerTargetReceiverChain) {
     return undefined
   }
 
-  // INITIALIZE Contracts
-  const drawBuffer = getContract('DrawBuffer', config.L1.chainId, providerL1, contracts)
-  const prizeDistributionBufferL2 = getContract('PrizeDistributionBuffer', config.L2.chainId, providerL2, contracts)
-  const drawCalculatorTimelock = getContract('DrawCalculatorTimelock', config.L2.chainId, providerL2, contracts)
-  const l2TimelockTrigger = getContract('L2TimelockTrigger', config.L2.chainId, providerL2, contracts)
-  const ticketL1 = getContract('Ticket', config.L1.chainId, providerL1, contracts)
-  const ticketL2 = getContract('Ticket', config.L2.chainId, providerL2, contracts)
-  const prizeTierHistory = getContract('PrizeTierHistory', config.L1.chainId, providerL1, contracts)
+  //  Initialize BeaconChain contracts
+  const drawBuffer = getContract('DrawBuffer', config.beaconChain.chainId, providerBeaconChain, contracts)
+  const prizeTierHistory = getContract('PrizeTierHistory', config.beaconChain.chainId, providerBeaconChain, contracts)
+
+  //  Initialize ReceiverChain contracts
+  const prizeDistributionBufferL2 = getContract('PrizeDistributionBuffer', config.targetReceiverChain.chainId, providerTargetReceiverChain, contracts)
+  const drawCalculatorTimelock = getContract('DrawCalculatorTimelock', config.targetReceiverChain.chainId, providerTargetReceiverChain, contracts)
+  const l2TimelockTrigger = getContract('L2TimelockTrigger', config.targetReceiverChain.chainId, providerTargetReceiverChain, contracts)
+  const ticketL2 = getContract('Ticket', config.targetReceiverChain.chainId, providerTargetReceiverChain, contracts)
+
+  // TODO: throw error if any of the contracts is unavailable?
+  if (!drawBuffer || !prizeTierHistory || !prizeDistributionBufferL2 || !drawCalculatorTimelock || !l2TimelockTrigger || !ticketL2) return undefined;
+
+  //  Initialize Secondary ReceiverChain contracts
+  let otherTicketContracts: Array<Contract | undefined> | undefined = config.otherTicketChains?.map(otherTicket => {
+    return getContract('Ticket', otherTicket.chainId, getJsonRpcProvider(otherTicket.providerUrl), contracts)
+  })
 
   try {
     let tx;
@@ -35,12 +51,11 @@ export async function L2DrawAndPrizeDistributionPush(contracts: ContractsBlob, c
     let status = 0;
     let response;
     let newestDraw
+    let decimals = 18;
     let msg = 'L2TimelockTrigger/no-action-required';
 
+    decimals = await ticketL2.decimals()
     newestDraw = await drawBuffer.getNewestDraw()
-    const totalSupplyTickets = (await ticketL2.totalSupply()).add(await ticketL1.totalSupply())
-    const decimals = await ticketL2.decimals()
-    debug(`Total supply of tickets: ${ethers.utils.formatUnits(totalSupplyTickets, decimals)}`)
 
     /// L1 Prize Distribution (L1 Trigger)
     let lastPrizeDistributionDrawId = 0
@@ -62,12 +77,19 @@ export async function L2DrawAndPrizeDistributionPush(contracts: ContractsBlob, c
     const draw = await drawBuffer.getDraw(drawId)
     debug("Draw: ", draw)
 
-    const prizeDistribution = await computePrizeDistribution(
-      draw,
-      prizeTierHistory,
-      ticketL2,
-      ticketL1
-    )
+    const prizeTier = await prizeTierHistory.getPrizeTier(drawId)
+    const endTimestampOffset = prizeTier.endTimestampOffset
+    const startTimestampOffset = draw.beaconPeriodSeconds
+    const startTime = draw.timestamp - startTimestampOffset
+    const endTime = draw.timestamp - endTimestampOffset
+
+    const L2TicketTotalSupply = await getMultiTicketAverageTotalSuppliesBetween([ticketL2], startTime, endTime)
+    if (!L2TicketTotalSupply || L2TicketTotalSupply.length === 0 && typeof L2TicketTotalSupply[0] === 'undefined') throw new Error('No L2 Ticket Total Supply')
+
+    const totalSupplyOtherTickets = await getMultiTicketAverageTotalSuppliesBetween(otherTicketContracts, startTime, endTime)
+
+    const prizeDistribution = await computePrizeDistributionFromTicketAverageTotalSupplies(draw, prizeTier, BigNumber.from(L2TicketTotalSupply[0]), totalSupplyOtherTickets, decimals)
+    if (!prizeDistribution) throw new Error('PrizeDistribution is undefined')
 
     debug("PrizeDistribution: ", prizeDistribution)
     console.log('PRIZE', prizeDistribution.prize.toString())
@@ -83,7 +105,7 @@ export async function L2DrawAndPrizeDistributionPush(contracts: ContractsBlob, c
           speed: 'fast',
           gasLimit: 500000,
         });
-        response = await providerL2.getTransaction(txRes.hash);
+        response = await providerTargetReceiverChain.getTransaction(txRes.hash);
         debug(`Propagated prize distribution for draw ${draw} to L2: `, txRes.hash)
       }
       msg = 'L2TimelockTrigger/push-prize-distribution';
