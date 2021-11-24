@@ -4,7 +4,7 @@ import ERC20 from '@pooltogether/v4-core/abis/IControlledToken.json'
 import { ActionState, Relayer, Config, ContractsBlob } from './types'
 import getContract from './get/getContract';
 import getInfuraProvider from "./get/getInfuraProvider";
-const debug = require('debug')('pt-autotask')
+const debug = require('debug')('pt-autotask-lib')
 
 const APR_PER_MINUTE = 133
 const APR_PER_CALL_FIXED_POINT_9 = 5 * APR_PER_MINUTE // APR for 5 minute frequency

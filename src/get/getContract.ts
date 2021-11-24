@@ -1,7 +1,7 @@
 import { ethers } from 'ethers'
 import { Contract } from 'ethers'
 import { ContractsBlob } from '../types'
-const debug = require('debug')('pt-autotask')
+const debug = require('debug')('pt-autotask-lib')
 
 export function getContract(name: string, chainId: number, providerOrSigner: any, contractsBlob: ContractsBlob): Contract | never {
   debug("name:", name); debug("chainId:", chainId);

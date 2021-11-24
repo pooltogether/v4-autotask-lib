@@ -1,7 +1,7 @@
 import { Config, ContractsBlob } from '../types'
 import { getContract } from './getContract';
 import { getInfuraProvider } from "./getInfuraProvider";
-const debug = require('debug')('pt-autotask')
+const debug = require('debug')('pt-autotask-lib')
 
 interface IDrawBeaconState {
   status: number;

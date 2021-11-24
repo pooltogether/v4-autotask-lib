@@ -3,9 +3,9 @@ import { ActionState, ConfigWithL2, ContractsBlob, Relayer } from './types'
 import { getContract } from './get/getContract';
 import { getJsonRpcProvider } from "./get/getJsonRpcProvider";
 import { computePrizeDistribution } from './utils/computePrizeDistribution';
-const debug = require('debug')('pt-autotask')
+const debug = require('debug')('pt-autotask-lib')
 
-export async function L2DrawAndPrizeDistributionPush(contracts: ContractsBlob, config: ConfigWithL2, relayer?: Relayer): Promise<ActionState> {
+export async function L2DrawAndPrizeDistributionPush(contracts: ContractsBlob, config: ConfigWithL2, relayer?: Relayer): Promise<ActionState | undefined> {
   let providerL1;
   if (config?.L1?.providerUrl) {
     providerL1 = getJsonRpcProvider(config?.L1?.providerUrl)
@@ -14,6 +14,10 @@ export async function L2DrawAndPrizeDistributionPush(contracts: ContractsBlob, c
   let providerL2;
   if (config?.L2?.providerUrl) {
     providerL2 = getJsonRpcProvider(config?.L2?.providerUrl)
+  }
+
+  if (!providerL1 || !providerL2) {
+    return undefined
   }
 
   // INITIALIZE Contracts

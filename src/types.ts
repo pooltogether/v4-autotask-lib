@@ -32,20 +32,15 @@ export interface Config {
 }
 
 export interface ConfigWithL2 {
-  chainId: number;
-  network: string;
-  apiKey: string | undefined;
   speed?: "slow" | "normal" | "fast" | string;
   gasLimit?: number | string;
   execute?: Boolean;
   L1: {
     chainId: number;
-    network: string;
     providerUrl?: string;
   },
   L2: {
     chainId: number;
-    network: string;
     providerUrl?: string;
   }
 }

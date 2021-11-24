@@ -2,7 +2,7 @@ import { ActionState, Config, ContractsBlob, Relayer } from './types'
 import { getContract } from './get/getContract';
 import { getInfuraProvider } from "./get/getInfuraProvider";
 
-const debug = require('debug')('pt-autotask')
+const debug = require('debug')('pt-autotask-lib')
 
 export async function drawBeaconHandleDrawStartAndComplete(contracts: ContractsBlob, config: Config, relayer?: Relayer): Promise<ActionState> {
   const provider = getInfuraProvider(config.network, config.apiKey)

@@ -4,7 +4,7 @@ import { getContract } from './get/getContract';
 import { getInfuraProvider } from "./get/getInfuraProvider";
 import { getJsonRpcProvider } from "./get/getJsonRpcProvider";
 import { computePrizeDistribution } from './utils/computePrizeDistribution';
-const debug = require('debug')('pt-autotask')
+const debug = require('debug')('pt-autotask-lib')
 
 export async function L1PrizeDistributionPush(contracts: ContractsBlob, config: ConfigWithL2, relayer?: Relayer): Promise<ActionState> {
   try {

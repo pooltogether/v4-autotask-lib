@@ -3,7 +3,7 @@ import { computeCardinality } from './computeCardinality'
 import { calculatePicks } from './calculatePicks'
 import { Draw } from '../types'
 import { Contract } from '@ethersproject/contracts'
-const debug = require('debug')('pt-autotask')
+const debug = require('debug')('pt-autotask-lib')
 
 interface IPrizeDistribution {
     bitRangeSize: any;
