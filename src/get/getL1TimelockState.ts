@@ -13,6 +13,7 @@ export async function getL1TimelockState(contracts: ContractsBlob, config: Confi
   try {
     const provider = getInfuraProvider(config.network, config.apiKey)
     const L1TimelockTrigger = getContract('L1TimelockTrigger', config.chainId, provider, contracts);
+    if (!L1TimelockTrigger) throw new Error('L1TimelockTrigger contract not found')
     debug('L1TimelockTrigger: ', L1TimelockTrigger.address)
     const timelock = await L1TimelockTrigger.timelock()
     const prizeDistributionBuffer = await L1TimelockTrigger.prizeDistributionBuffer()

@@ -1,3 +1,5 @@
+
+// @ts-nocheck
 import { ethers } from 'ethers';
 import { ActionState, ConfigWithL2, ContractsBlob, Relayer } from './types'
 import { getContract } from './get/getContract';
@@ -6,8 +8,10 @@ import { getJsonRpcProvider } from "./get/getJsonRpcProvider";
 import { computePrizeDistribution } from './utils/computePrizeDistribution';
 const debug = require('debug')('pt-autotask-lib')
 
-export async function L1PrizeDistributionPush(contracts: ContractsBlob, config: ConfigWithL2, relayer?: Relayer): Promise<ActionState> {
+export async function L1PrizeDistributionPush(contracts: ContractsBlob, config: ConfigWithL2, relayer?: Relayer): Promise<ActionState | undefined> {
   try {
+
+    return undefined;
     // Connects to Infura provider.
     const providerL1 = getInfuraProvider(config.L1.network, config.apiKey)
     const providerL2 = getJsonRpcProvider(`https://${config.L2.network}.infura.io/v3/${config.apiKey}`)

@@ -13,6 +13,7 @@ export async function getL2TimelockState(contracts: ContractsBlob, config: Confi
   try {
     const provider = getJsonRpcProvider(`https://${config.network}.infura.io/v3/${config.apiKey}`)
     const L2TimelockTrigger = getContract('L2TimelockTrigger', config.chainId, provider, contracts);
+    if (!L2TimelockTrigger) throw new Error('L2TimelockTrigger not found')
     debug('L2TimelockTrigger: ', L2TimelockTrigger.address)
     const timelock = await L2TimelockTrigger.timelock()
     const drawBuffer = await L2TimelockTrigger.drawBuffer()

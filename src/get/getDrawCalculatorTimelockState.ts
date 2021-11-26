@@ -13,6 +13,7 @@ export async function getDrawCalculatorTimelockState(contracts: ContractsBlob, c
   try {
     const provider = getJsonRpcProvider(`https://${config.network}.infura.io/v3/${config.apiKey}`)
     const DrawCalculatorTimelock = getContract('DrawCalculatorTimelock', config.chainId, provider, contracts);
+    if (!DrawCalculatorTimelock) throw new Error('DrawCalculatorTimelock not found')
     debug('DrawCalculatorTimelock: ', DrawCalculatorTimelock.address)
     const timelock = await DrawCalculatorTimelock.getTimelock()
     const hasElapsed = await DrawCalculatorTimelock.hasElapsed()

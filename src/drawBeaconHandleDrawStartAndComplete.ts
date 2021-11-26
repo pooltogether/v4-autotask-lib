@@ -7,6 +7,7 @@ const debug = require('debug')('pt-autotask-lib')
 export async function drawBeaconHandleDrawStartAndComplete(contracts: ContractsBlob, config: Config, relayer?: Relayer): Promise<ActionState> {
   const provider = getInfuraProvider(config.network, config.apiKey)
   const drawBeacon = getContract('DrawBeacon', config.chainId, provider, contracts);
+  if (!drawBeacon) throw new Error('DrawBeacon contract not found')
 
   try {
     let msg;

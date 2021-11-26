@@ -1,9 +1,10 @@
+
 import { BigNumber } from '@ethersproject/bignumber';
 import { Contract } from '@ethersproject/contracts';
 import { ActionState, CalculateL2DrawAndPrizeDistributionConfig, ContractsBlob, Relayer } from './types'
 import { getContract } from './get/getContract';
 import { getJsonRpcProvider } from "./get/getJsonRpcProvider";
-import { computePrizeDistributionFromTicketAverageTotalSupplies, getMultiTicketAverageTotalSuppliesBetween, sumBigNumbers } from './utils'
+import { computePrizeDistributionFromTicketAverageTotalSupplies, getMultiTicketAverageTotalSuppliesBetween } from './utils'
 const debug = require('debug')('pt-autotask-lib')
 
 export async function L2DrawAndPrizeDistributionPush(
@@ -36,6 +37,7 @@ export async function L2DrawAndPrizeDistributionPush(
   const drawCalculatorTimelock = getContract('DrawCalculatorTimelock', config.targetReceiverChain.chainId, providerTargetReceiverChain, contracts)
   const l2TimelockTrigger = getContract('L2TimelockTrigger', config.targetReceiverChain.chainId, providerTargetReceiverChain, contracts)
   const ticketL2 = getContract('Ticket', config.targetReceiverChain.chainId, providerTargetReceiverChain, contracts)
+
 
   // TODO: throw error if any of the contracts is unavailable?
   if (!drawBuffer || !prizeTierHistory || !prizeDistributionBufferL2 || !drawCalculatorTimelock || !l2TimelockTrigger || !ticketL2) return undefined;
@@ -74,27 +76,32 @@ export async function L2DrawAndPrizeDistributionPush(
 
     // If the prize distribution hasn't propagated and we're allowed to push
     const drawId = lastPrizeDistributionDrawId + 1;
-    const draw = await drawBuffer.getDraw(drawId)
+    const draw = await drawBuffer.getDraw(drawId - 1)
     debug("Draw: ", draw)
 
-    const prizeTier = await prizeTierHistory.getPrizeTier(drawId)
+    const prizeTier = await prizeTierHistory.getPrizeTier(drawId - 1)
     const endTimestampOffset = prizeTier.endTimestampOffset
     const startTimestampOffset = draw.beaconPeriodSeconds
     const startTime = draw.timestamp - startTimestampOffset
     const endTime = draw.timestamp - endTimestampOffset
 
     const L2TicketTotalSupply = await getMultiTicketAverageTotalSuppliesBetween([ticketL2], startTime, endTime)
+    debug('L2TicketTotalSupply: ', L2TicketTotalSupply)
     if (!L2TicketTotalSupply || L2TicketTotalSupply.length === 0 && typeof L2TicketTotalSupply[0] === 'undefined') throw new Error('No L2 Ticket Total Supply')
 
     const totalSupplyOtherTickets = await getMultiTicketAverageTotalSuppliesBetween(otherTicketContracts, startTime, endTime)
+    debug('totalSupplyOtherTickets', totalSupplyOtherTickets)
 
-    const prizeDistribution = await computePrizeDistributionFromTicketAverageTotalSupplies(draw, prizeTier, BigNumber.from(L2TicketTotalSupply[0]), totalSupplyOtherTickets, decimals)
+    if (totalSupplyOtherTickets && !totalSupplyOtherTickets[0]) throw new Error('No totalSupplyOtherTickets')
+
+    // @ts-ignore
+    const prizeDistribution = await computePrizeDistributionFromTicketAverageTotalSupplies(draw, prizeTier, BigNumber.from(L2TicketTotalSupply[0]), [totalSupplyOtherTickets[0]], decimals)
+    debug("PrizeDistribution: ", prizeDistribution)
     if (!prizeDistribution) throw new Error('PrizeDistribution is undefined')
 
-    debug("PrizeDistribution: ", prizeDistribution)
-    console.log('PRIZE', prizeDistribution.prize.toString())
+    debug("prizeDistribution: ", prizeDistribution)
+    debug('prizeDistribution:prize', prizeDistribution.prize.toString())
     if (lastPrizeDistributionDrawId < newestDraw.drawId && timelockElapsed) {
-
       tx = await l2TimelockTrigger.populateTransaction.push(draw, prizeDistribution)
       // IF executable and Relayer is available.
       if (config.execute && relayer) {

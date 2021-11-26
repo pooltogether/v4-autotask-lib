@@ -12,6 +12,7 @@ const APR_PER_CALL_FIXED_POINT_9 = 5 * APR_PER_MINUTE // APR for 5 minute freque
 export async function GenerateYieldForPrizePool(contracts: ContractsBlob, config: Config, relayer: Relayer): Promise<ActionState> {
   const provider = getInfuraProvider(config.network, config.apiKey)
   const mockYieldSource = getContract('MockYieldSource', config.chainId, provider, contracts)
+  if (!mockYieldSource) throw new Error('MockYieldSource contract not found')
   const depositToken = new ethers.Contract(await mockYieldSource.getToken(), ERC20, provider)
 
   let response;

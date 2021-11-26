@@ -13,6 +13,7 @@ export async function getDrawBeaconState(contracts: ContractsBlob, config: Confi
   try {
     const provider = getInfuraProvider(config.network, config.apiKey)
     const drawBeacon = getContract('DrawBeacon', config.chainId, provider, contracts);
+    if (!drawBeacon) throw new Error('DrawBeacon contract not found')
     debug('DrawBeacon: ', drawBeacon.address)
     const nextDrawId = await drawBeacon.getNextDrawId()
     const beaconPeriodStartedAt = await drawBeacon.getBeaconPeriodStartedAt()

@@ -6,6 +6,7 @@ const debug = require('debug')('pt-autotask-lib')
 export async function PrizeFlushAndReserveCheckpoint(contracts: ContractsBlob, config: Config, relayer?: Relayer): Promise<ActionState> {
   const provider = getInfuraProvider(config.network, config.apiKey)
   const prizeFlush = getContract('PrizeFlush', config.chainId, provider, contracts)
+  if (!prizeFlush) throw new Error('PrizeFlush contract not found')
 
   let response;
   let status = 0
