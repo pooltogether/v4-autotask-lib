@@ -30,6 +30,8 @@ describe('L2DrawAndPrizeDistributionPush', () => {
       Relayer
     )
 
+    console.log(autotask, 'autotask')
+
     expect(autotask).toBeTruthy();
   })
 })

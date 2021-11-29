@@ -89,6 +89,10 @@ export async function L2DrawAndPrizeDistributionPush(
       throw new Error('DrawCalculatorTimelockReceiverChain/timelock-not-elapsed')
     }
 
+    debug('oldestBeaconChainDrawId: ', oldestBeaconChainDrawId)
+    debug('newestBeaconChainDrawId: ', newestBeaconChainDrawId)
+    debug('newestReceiverChainDrawId: ', newestReceiverChainDrawId)
+
     /**
      * Depending on the state of the Beacon and Receiver chain, existing prize distributions may NOT required on the receiver chain.
      * State 0: The Beacon and Receiver chains have not been initialized.
@@ -105,6 +109,7 @@ export async function L2DrawAndPrizeDistributionPush(
     let drawFromBeaconChainToPush: Draw | undefined;
 
     if (newestBeaconChainDrawId === newestReceiverChainDrawId + 1) {
+
       /**
        * IF the Beacon chain has exactly 1 more draw and than Receiver chain we can
        * PUSH the NEWEST draw from the Beacon chain to the Receiver chain.
@@ -129,7 +134,7 @@ export async function L2DrawAndPrizeDistributionPush(
       drawFromBeaconChainToPush = await drawBufferBeaconChain.getDraw(drawIdToFetch)
     }
 
-    if (newestBeaconChainDrawId > newestReceiverChainDrawId + 1) {
+    if (newestBeaconChainDrawId > (newestReceiverChainDrawId + 1) && newestReceiverChainDrawId > 0) {
       /**
        * IF the Beacon chain is 2 draws ahead of the Receiver chain AFTER the Receiver has been initialized, we can
        * PUSH a Draw between the OLDEST and NEWEST from the Beacon chain to the Receiver chain.
