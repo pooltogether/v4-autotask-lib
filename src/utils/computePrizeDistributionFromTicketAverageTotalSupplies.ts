@@ -55,7 +55,7 @@ export async function computePrizeDistributionFromTicketAverageTotalSupplies(
   const secondaryTotalAverageSupplies = sumBigNumbers(
     ticketSecondaryListAverageTotalSupplyBigNumber
   );
-  debug("secondaryTotalAverageSupplies: ", secondaryTotalAverageSupplies)
+  debug("computePrizeDistributionFromTicketAverageTotalSupplies:secondaryTotalAverageSupplies: ", secondaryTotalAverageSupplies)
 
   const matchCardinality = computeCardinality(
     BigNumber.from(bitRangeSize),
@@ -65,11 +65,11 @@ export async function computePrizeDistributionFromTicketAverageTotalSupplies(
 
   debug("computePrizeDistributionFromTicketAverageTotalSupplies:matchCardinality: ", matchCardinality)
 
-  let numberOfPicks;
+  let numberOfPicks = BigNumber.from(0);
   const totalPicks = BigNumber.from(BigNumber.from(2).pow(bitRangeSize)).pow(
     matchCardinality
   );
-  debug("totalPicks: ", totalPicks)
+  debug("computePrizeDistributionFromTicketAverageTotalSupplies:totalPicks: ", totalPicks)
 
   if (totalAverageSupplies.gt("0")) {
     numberOfPicks = calculatePicksFromAverageTotalSuppliesBetween(

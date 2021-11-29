@@ -7,12 +7,12 @@ export function calculatePicksFromAverageTotalSuppliesBetween(
   totalPicks: number,
   ticketPrimaryTotalSupply: BigNumber,
   otherTicketsTotalSupply: BigNumber
-): number | undefined {
+): BigNumber {
   if (
     !BigNumber.isBigNumber(ticketPrimaryTotalSupply) ||
     !BigNumber.isBigNumber(otherTicketsTotalSupply)
   )
-    return undefined;
+    return BigNumber.from(0);
   let numberOfPicks;
   if (ticketPrimaryTotalSupply.gt("0")) {
     numberOfPicks = ticketPrimaryTotalSupply
@@ -26,7 +26,7 @@ export function calculatePicksFromAverageTotalSuppliesBetween(
       numberOfPicks.toNumber()
     )}`
   );
-  return Math.floor(numberOfPicks.toNumber());
+  return BigNumber.from(Math.floor(numberOfPicks.toNumber()));
 }
 
 export default calculatePicksFromAverageTotalSuppliesBetween;
