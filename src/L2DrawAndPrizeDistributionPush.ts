@@ -94,11 +94,11 @@ export async function L2DrawAndPrizeDistributionPush(
     debug('newestReceiverChainDrawId: ', newestReceiverChainDrawId)
 
     /**
-     * Depending on the state of the Beacon and Receiver chain, existing prize distributions may NOT required on the receiver chain.
+     * Depending on the state of the Beacon and Receiver chain, existing prize distributions may NOT required on the Receiver chain.
      * State 0: The Beacon and Receiver chains have not been initialized.
-     * State 1: Beacon Chain is 1 draw ahead of the Receiver chain.
-     * State 2: Beacon Chain is 2 draws ahead of an uninitialized Receiver chain.
-     * State 3: Beacon Chain is 2 draws ahead of an initialized Receiver chain.
+     * State 1: Beacon chain is 1 draw ahead of the Receiver chain.
+     * State 2: Beacon chain is 2 draws ahead of an uninitialized Receiver chain.
+     * State 3: Beacon chain is 2 draws ahead of an initialized Receiver chain.
      */
 
     if (oldestBeaconChainDrawId === 0 && newestBeaconChainDrawId === 0) {
@@ -109,14 +109,12 @@ export async function L2DrawAndPrizeDistributionPush(
     let drawFromBeaconChainToPush: Draw | undefined;
 
     if (newestBeaconChainDrawId === newestReceiverChainDrawId + 1) {
-
       /**
        * IF the Beacon chain has exactly 1 more draw and than Receiver chain we can
        * PUSH the NEWEST draw from the Beacon chain to the Receiver chain.
        * @dev This includes the case where the Receiver chain has 0 draws and the Beacon chain has 1 draws.
        * @dev This includes the case where the Receiver chain has 1 draw and the Beacon chain has 2 draws.
-       * @dev Both when the Receiver chain is being initialize and when the Receiver is staying in sync with the Beacon chain
-       *      we can request the newest draw from the Beacon chain.
+       * @dev When the Receiver is staying in sync with the Beacon chain we can request the newest draw from the Beacon chain.
        */
       drawIdToFetch = newestBeaconChainDrawId
       drawFromBeaconChainToPush = await drawBufferBeaconChain.getDraw(drawIdToFetch)
@@ -126,9 +124,10 @@ export async function L2DrawAndPrizeDistributionPush(
       /**
        * IF the Beacon chain has 2 or more draws and the Receiver chain is NOT initialized, we can
        * PUSH the NEWEST draw from the Beacon chain to the Receiver chain.
-       * @dev This scenario is likely to occur if a new PrizePool is created on the Receiver chain after a Beacon chain has
-       *      been previously initialized. We're assuming the Receiver chain has no need to sync with previous Beacon chain Draws and PrizeDistributions, 
-       *      because the receiver chain PrizePool DID NOT exist yet when those parameters were created.
+       * @dev This scenario is likely to occur if a new PrizePool is created on the Receiver chain, after a Beacon chain has
+       *      been previously initialized with 2 more or more draws. 
+       *      We're assuming the Receiver chain has no need to sync with previous Beacon chain Draws/PrizeDistributions
+       *      because the Receiver chain PrizePool DID NOT exist yet when the parameters were created.
        */
       drawIdToFetch = newestBeaconChainDrawId
       drawFromBeaconChainToPush = await drawBufferBeaconChain.getDraw(drawIdToFetch)
@@ -136,7 +135,7 @@ export async function L2DrawAndPrizeDistributionPush(
 
     if (newestBeaconChainDrawId > (newestReceiverChainDrawId + 1) && newestReceiverChainDrawId > 0) {
       /**
-       * IF the Beacon chain is 2 draws ahead of the Receiver chain AFTER the Receiver has been initialized, we can
+       * IF the Beacon chain is 2 draws ahead of the Receiver chain AFTER the Receiver has been initialized and synced, we can
        * PUSH a Draw between the OLDEST and NEWEST from the Beacon chain to the Receiver chain.
        * @dev This scenario is likely to occur if the Receiver chain missed a draw from the Beacon chain
        *      and needs to catch up to Beacon chain, since it was previously in sync.
