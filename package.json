@@ -1,6 +1,9 @@
 {
+  "name": "v4-autotask-lib",
   "version": "0.1.0-beta.4",
+  "author": "Kames Geraghty",
   "license": "MIT",
+  "module": "dist/v4-autotask-lib.esm.js",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
   "files": [
@@ -31,9 +34,6 @@
     "singleQuote": true,
     "trailingComma": "es5"
   },
-  "name": "v4-autotask-lib",
-  "author": "Kames Geraghty",
-  "module": "dist/v4-autotask-lib.esm.js",
   "size-limit": [
     {
       "path": "dist/v4-autotask-lib.cjs.production.min.js",
