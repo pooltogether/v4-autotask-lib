@@ -14,7 +14,7 @@ export interface PrizePoolNetworkConfig {
   allPrizePoolNetworkChains: ProviderOptions[]
 }
 
-export async function ReceiverDrawLockPushAndNetworkTotalSupplyPush(
+export async function receiverDrawLockPushAndNetworkTotalSupplyPush(
   contracts: ContractsBlob,
   config: PrizePoolNetworkConfig,
 ): Promise<Transaction | undefined> {
