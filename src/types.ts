@@ -32,7 +32,7 @@ export interface Config {
   execute?: Boolean;
 }
 
-interface ProviderOptions {
+export interface ProviderOptions {
   chainId: number;
   providerUrl: string;
 }
