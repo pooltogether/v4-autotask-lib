@@ -1,2 +1,2 @@
 export * from './calculateDrawTimestamps'
-export * from './calculateDrawToPushToTimelock'
+export * from './calculateReceiverDrawToPushToTimelock'

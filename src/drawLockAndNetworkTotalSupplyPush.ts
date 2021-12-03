@@ -6,7 +6,7 @@ import { ActionState, CalculateL2DrawAndPrizeDistributionConfig, ContractsBlob, 
 import { getContract } from './get/getContract';
 import { getJsonRpcProvider } from "./get/getJsonRpcProvider";
 import { computePrizeDistributionFromTicketAverageTotalSupplies, getMultiTicketAverageTotalSuppliesBetween, sumBigNumbers } from './utils'
-import { calculateDrawTimestamps, calculateDrawToPushToTimelock } from './helpers'
+import { calculateDrawTimestamps, calculateReceiverDrawToPushToTimelock } from './helpers'
 const debug = require('debug')('pt-autotask-lib')
 
 export interface PrizePoolNetworkConfig {
@@ -15,7 +15,7 @@ export interface PrizePoolNetworkConfig {
   allPrizePoolNetworkChains: ProviderOptions[]
 }
 
-export async function receiverDrawLockPushAndNetworkTotalSupplyPush(
+export async function drawLockAndNetworkTotalSupplyPush(
   contracts: ContractsBlob,
   config: PrizePoolNetworkConfig,
 ): Promise<Transaction | undefined> {
@@ -62,15 +62,15 @@ export async function receiverDrawLockPushAndNetworkTotalSupplyPush(
   // Fetching data from Beacon/Receiver/SecondaryReceiver Chains
   /* ============================================================ */
   const decimals = await ticketReceiverChain.decimals()
-  const { drawFromBeaconChainToPush, drawIdToFetch } = calculateDrawToPushToTimelock(
+  const { drawFromBeaconChainToPush, drawIdToFetch } = await calculateReceiverDrawToPushToTimelock(
     drawBufferBeaconChain,
     prizeDistributionBufferBeaconChain,
     prizeDistributionBufferReceiverChain,
     drawCalculatorTimelockReceiverChain,
   )
 
-  const prizeTier = await prizeTierHistoryBeaconChain.getPrizeTier(draw.drawId)
-  const [startTime, endTime] = calculateDrawTimestamps(prizeTier, draw)
+  const prizeTier = await prizeTierHistoryBeaconChain.getPrizeTier(drawFromBeaconChainToPush.drawId)
+  const [startTime, endTime] = calculateDrawTimestamps(prizeTier, drawFromBeaconChainToPush)
 
   const allTicketAverageTotalSupply = await getMultiTicketAverageTotalSuppliesBetween(allPrizePoolNetworkChains, startTime, endTime)
   debug('allTicketAverageTotalSupply', allTicketAverageTotalSupply)

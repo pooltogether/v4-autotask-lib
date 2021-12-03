@@ -1,8 +1,9 @@
 import { Contract } from "@ethersproject/contracts"
+import { Draw } from "../types";
 
 const debug = require('debug')('pt-autotask-lib')
 
-export async function calculateDrawToPushToTimelock(
+export async function calculateReceiverDrawToPushToTimelock(
   drawBufferBeaconChain: Contract,
   prizeDistributionBufferBeaconChain: Contract,
   prizeDistributionBufferReceiverChain: Contract,

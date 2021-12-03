@@ -22,4 +22,4 @@ export * from './prizeFlushAndReserveCheckpoint'
 export * as flushAutotask from './prizeFlushAndReserveCheckpoint'
 
 // receiverDrawLockPushAndNetworkTotalSupplyPush
-export { receiverDrawLockPushAndNetworkTotalSupplyPush } from './receiverDrawLockPushAndNetworkTotalSupplyPush'
+export { drawLockAndNetworkTotalSupplyPush } from './drawLockAndNetworkTotalSupplyPush'
