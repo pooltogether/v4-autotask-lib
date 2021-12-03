@@ -10,7 +10,7 @@ export function getContract(name: string, chainId: number, providerOrSigner: any
   if (contract[0]) {
     return new ethers.Contract(contract[0].address, contract[0].abi, providerOrSigner)
   }
-  throw new Error(`Contract Unavailable`)
+  throw new Error(`Contract Unavailable: ${name} on chainId: ${chainId} `)
 }
 
 export default getContract

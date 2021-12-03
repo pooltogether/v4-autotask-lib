@@ -60,26 +60,31 @@ export async function receiverDrawLockPushAndNetworkTotalSupplyPush(
   /* ============================================================ */
   // Fetching data from Beacon/Receiver/SecondaryReceiver Chains
   /* ============================================================ */
-  decimals = await ticketReceiverChain.decimals()
-  drawNewest = await drawBufferBeaconChain.getNewestDraw()
+  let drawNewestFromBeaconChain;
+  const decimals = await ticketReceiverChain.decimals()
+  try {
+    drawNewestFromBeaconChain = await drawBufferBeaconChain.getNewestDraw()
+  } catch (error) {
+    throw new Error('BeaconChain: DrawBuffer is not initialized')
+  }
 
-  let oldestBeaconChainDrawId = 0
-  let newestBeaconChainDrawId = 0
-  let newestReceiverChainDrawId = 0
+  let oldestDrawIdFromBeaconChain = 0
+  let newestDrawIdFromBeaconChain = 0
+  let newestDrawIdFromReceiverChain = 0
   try {
     const { drawId: drawIdNewestFromReceiverChain } = await prizeDistributionBufferReceiverChain.getNewestPrizeDistribution()
-    newestReceiverChainDrawId = drawIdNewestFromReceiverChain
+    newestDrawIdFromReceiverChain = drawIdNewestFromReceiverChain
   } catch (e) {
     // IF no prize distribution exists on the RECEIVER chain, the RPC call will throw an error.
     // IF no PrizeDistribution struct exists we know that the ReceiverChain PrizeDistributionBuffer has not been initialized yet.
     const { drawId: drawIdNewestFromBeaconChain } = await prizeDistributionBufferBeaconChain.getNewestPrizeDistribution()
-    newestBeaconChainDrawId = drawIdNewestFromBeaconChain
+    newestDrawIdFromBeaconChain = drawIdNewestFromBeaconChain
 
     const { drawId: drawIdOldestFromBeaconChain } = await prizeDistributionBufferBeaconChain.getOldestPrizeDistribution()
-    oldestBeaconChainDrawId = drawIdOldestFromBeaconChain
+    oldestDrawIdFromBeaconChain = drawIdOldestFromBeaconChain
   }
-  debug(`ReceiverChain: Newest PrizeDistribution Draw ID is ${newestReceiverChainDrawId}`)
-  debug(drawNewest.drawId)
+  debug(`ReceiverChain: Newest PrizeDistribution Draw ID is ${newestDrawIdFromReceiverChain}`)
+  debug(drawNewestFromBeaconChain.drawId)
 
   const timelockElapsed = await drawCalculatorTimelockReceiverChain.hasElapsed()
   debug(timelockElapsed)
@@ -89,9 +94,9 @@ export async function receiverDrawLockPushAndNetworkTotalSupplyPush(
     throw new Error('DrawCalculatorTimelockReceiverChain/timelock-not-elapsed')
   }
 
-  debug('oldestBeaconChainDrawId: ', oldestBeaconChainDrawId)
-  debug('newestBeaconChainDrawId: ', newestBeaconChainDrawId)
-  debug('newestReceiverChainDrawId: ', newestReceiverChainDrawId)
+  debug('oldestBeaconChainDrawId: ', oldestDrawIdFromBeaconChain)
+  debug('newestBeaconChainDrawId: ', newestDrawIdFromBeaconChain)
+  debug('newestReceiverChainDrawId: ', newestDrawIdFromReceiverChain)
 
   /**
    * Depending on the state of the Beacon and Receiver chain, existing prize distributions may NOT required on the Receiver chain.
@@ -101,14 +106,14 @@ export async function receiverDrawLockPushAndNetworkTotalSupplyPush(
    * State 3: Beacon chain is 2 draws ahead of an initialized Receiver chain.
    */
 
-  if (oldestBeaconChainDrawId === 0 && newestBeaconChainDrawId === 0) {
+  if (oldestDrawIdFromBeaconChain === 0 && newestDrawIdFromBeaconChain === 0) {
     throw new Error('BeaconChainPrizeDistributionBuffer/no-prize-distribution-buffer-available')
   }
 
   let drawIdToFetch = 0;
   let drawFromBeaconChainToPush: Draw | undefined;
 
-  if (newestBeaconChainDrawId === newestReceiverChainDrawId + 1) {
+  if (newestDrawIdFromBeaconChain === newestDrawIdFromReceiverChain + 1) {
     /**
      * IF the Beacon chain has exactly 1 more draw and than Receiver chain we can
      * PUSH the NEWEST draw from the Beacon chain to the Receiver chain.
@@ -116,11 +121,11 @@ export async function receiverDrawLockPushAndNetworkTotalSupplyPush(
      * @dev This includes the case where the Receiver chain has 1 draw and the Beacon chain has 2 draws.
      * @dev When the Receiver is staying in sync with the Beacon chain we can request the newest draw from the Beacon chain.
      */
-    drawIdToFetch = newestBeaconChainDrawId
+    drawIdToFetch = newestDrawIdFromBeaconChain
     drawFromBeaconChainToPush = await drawBufferBeaconChain.getDraw(drawIdToFetch)
   }
 
-  if (newestBeaconChainDrawId > 1 && newestReceiverChainDrawId === 0) {
+  if (newestDrawIdFromBeaconChain > 1 && newestDrawIdFromReceiverChain === 0) {
     /**
      * IF the Beacon chain has 2 or more draws and the Receiver chain is NOT initialized, we can
      * PUSH the NEWEST draw from the Beacon chain to the Receiver chain.
@@ -129,18 +134,18 @@ export async function receiverDrawLockPushAndNetworkTotalSupplyPush(
      *      We're assuming the Receiver chain has no need to sync with previous Beacon chain Draws/PrizeDistributions
      *      because the Receiver chain PrizePool DID NOT exist yet when the parameters were created.
      */
-    drawIdToFetch = newestBeaconChainDrawId
+    drawIdToFetch = newestDrawIdFromBeaconChain
     drawFromBeaconChainToPush = await drawBufferBeaconChain.getDraw(drawIdToFetch)
   }
 
-  if (newestBeaconChainDrawId > (newestReceiverChainDrawId + 1) && newestReceiverChainDrawId > 0) {
+  if (newestDrawIdFromBeaconChain > (newestDrawIdFromReceiverChain + 1) && newestDrawIdFromReceiverChain > 0) {
     /**
      * IF the Beacon chain is 2 draws ahead of the Receiver chain AFTER the Receiver has been initialized and synced, we can
      * PUSH a Draw between the OLDEST and NEWEST from the Beacon chain to the Receiver chain.
      * @dev This scenario is likely to occur if the Receiver chain missed a draw from the Beacon chain
      *      and needs to catch up to Beacon chain, since it was previously in sync.
      */
-    drawIdToFetch = newestReceiverChainDrawId + 1
+    drawIdToFetch = newestDrawIdFromReceiverChain + 1
     drawFromBeaconChainToPush = await drawBufferBeaconChain.getDraw(drawIdToFetch)
   }
 
