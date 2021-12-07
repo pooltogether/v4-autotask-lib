@@ -1,5 +1,4 @@
-import { Contract } from '@ethersproject/contracts';
-import { Transaction } from '@ethersproject/transactions';
+import { Contract, PopulatedTransaction } from '@ethersproject/contracts';
 import { ContractsBlob, ProviderOptions } from './types';
 import { getContract } from './get/getContract';
 import { getJsonRpcProvider } from './get/getJsonRpcProvider';
@@ -22,7 +21,7 @@ export interface PrizePoolNetworkConfig {
 export async function receiverDrawLockAndNetworkTotalSupplyPush(
   contracts: ContractsBlob,
   config: PrizePoolNetworkConfig
-): Promise<Transaction | undefined> {
+): Promise<PopulatedTransaction | undefined> {
   let providerBeaconChain;
   let providerTargetReceiverChain;
 
@@ -121,6 +120,7 @@ export async function receiverDrawLockAndNetworkTotalSupplyPush(
   const {
     drawFromBeaconChainToPush,
     drawIdToFetch,
+    lockAndPush,
   } = await calculateReceiverDrawToPushToTimelock(
     drawBufferBeaconChain,
     prizeDistributionBufferBeaconChain,
@@ -128,30 +128,34 @@ export async function receiverDrawLockAndNetworkTotalSupplyPush(
     drawCalculatorTimelockReceiverChain
   );
 
-  const prizeTier = await prizeTierHistoryBeaconChain.getPrizeTier(
-    drawIdToFetch
-  );
-  const [startTime, endTime] = calculateDrawTimestamps(
-    prizeTier,
-    drawFromBeaconChainToPush
-  );
+  if (lockAndPush) {
+    const prizeTier = await prizeTierHistoryBeaconChain.getPrizeTier(
+      drawIdToFetch
+    );
+    const [startTime, endTime] = calculateDrawTimestamps(
+      prizeTier,
+      drawFromBeaconChainToPush
+    );
 
-  const allTicketAverageTotalSupply = await getMultiTicketAverageTotalSuppliesBetween(
-    otherTicketContracts,
-    startTime,
-    endTime
-  );
-  debug('allTicketAverageTotalSupply', allTicketAverageTotalSupply);
+    const allTicketAverageTotalSupply = await getMultiTicketAverageTotalSuppliesBetween(
+      otherTicketContracts,
+      startTime,
+      endTime
+    );
+    debug('allTicketAverageTotalSupply', allTicketAverageTotalSupply);
 
-  if (!allTicketAverageTotalSupply) {
-    throw new Error('No ticket data available');
+    if (!allTicketAverageTotalSupply) {
+      throw new Error('No ticket data available');
+    }
+
+    const totalNetworkTicketSupply = sumBigNumbers(allTicketAverageTotalSupply);
+
+    return await receiverTimelockAndPushRouter.populateTransaction.push(
+      drawFromBeaconChainToPush,
+      totalNetworkTicketSupply
+    );
+  } else {
+    console.log('No Draw to lock and push');
+    return undefined;
   }
-
-  const totalNetworkTicketSupply = sumBigNumbers(allTicketAverageTotalSupply);
-
-  // @ts-ignore
-  return await receiverTimelockAndPushRouter.populateTransaction.push(
-    drawFromBeaconChainToPush,
-    totalNetworkTicketSupply
-  );
 }

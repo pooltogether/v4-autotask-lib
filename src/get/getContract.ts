@@ -13,7 +13,7 @@ export function getContract(
   debug('chainId:', chainId);
   if (!name || !chainId) throw new Error(`Invalid Contract Parameters`);
   const contract = contractsBlob.contracts.filter(
-    cont => cont.type == name && cont.chainId == chainId
+    cont => cont.type === name && cont.chainId === chainId
   );
   if (contract[0]) {
     return new ethers.Contract(

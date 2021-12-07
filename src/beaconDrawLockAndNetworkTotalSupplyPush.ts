@@ -1,4 +1,3 @@
-
 import { Contract, PopulatedTransaction } from '@ethersproject/contracts';
 import { ContractsBlob, ProviderOptions } from './types';
 import { getContract } from './get/getContract';
@@ -7,7 +6,10 @@ import {
   getMultiTicketAverageTotalSuppliesBetween,
   sumBigNumbers,
 } from './utils';
-import { calculateDrawTimestamps, calculateBeaconDrawToPushToTimelock } from './helpers';
+import {
+  calculateDrawTimestamps,
+  calculateBeaconDrawToPushToTimelock,
+} from './helpers';
 const debug = require('debug')('pt-autotask-lib');
 
 export interface PrizePoolNetworkConfig {
@@ -87,18 +89,26 @@ export async function beaconDrawLockAndNetworkTotalSupplyPush(
   let otherTicketContracts:
     | Array<Contract | undefined>
     | undefined = config.allPrizePoolNetworkChains?.map(otherTicket => {
-      return getContract(
-        'Ticket',
-        otherTicket.chainId,
-        getJsonRpcProvider(otherTicket.providerUrl),
-        contracts
-      );
-    });
+    return getContract(
+      'Ticket',
+      otherTicket.chainId,
+      getJsonRpcProvider(otherTicket.providerUrl),
+      contracts
+    );
+  });
 
-  const { lockAndPush, drawIdToFetch } = await calculateBeaconDrawToPushToTimelock(drawBufferBeaconChain, prizeDistributionBufferBeaconChain)
+  const {
+    lockAndPush,
+    drawIdToFetch,
+  } = await calculateBeaconDrawToPushToTimelock(
+    drawBufferBeaconChain,
+    prizeDistributionBufferBeaconChain
+  );
   if (lockAndPush) {
     let drawFromBeaconChainToPush;
-    drawFromBeaconChainToPush = await drawBufferBeaconChain.getDraw(drawIdToFetch);
+    drawFromBeaconChainToPush = await drawBufferBeaconChain.getDraw(
+      drawIdToFetch
+    );
     const prizeTier = await prizeTierHistoryBeaconChain.getPrizeTier(
       drawIdToFetch
     );
@@ -113,7 +123,10 @@ export async function beaconDrawLockAndNetworkTotalSupplyPush(
     );
     debug('allTicketAverageTotalSupply', allTicketAverageTotalSupply);
 
-    if (!allTicketAverageTotalSupply || allTicketAverageTotalSupply.length === 0) {
+    if (
+      !allTicketAverageTotalSupply ||
+      allTicketAverageTotalSupply.length === 0
+    ) {
       throw new Error('No ticket data available');
     }
 
@@ -126,6 +139,7 @@ export async function beaconDrawLockAndNetworkTotalSupplyPush(
       totalNetworkTicketSupply
     );
   } else {
-    throw new Error('No Draw to lock and push');
+    console.log('No Draw to lock and push');
+    return undefined;
   }
 }

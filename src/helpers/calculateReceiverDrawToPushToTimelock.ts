@@ -15,7 +15,7 @@ export async function calculateReceiverDrawToPushToTimelock(
   } catch (error) {
     throw new Error('BeaconChain: DrawBuffer is not initialized');
   }
-
+  let lockAndPush: Boolean = false;
   let oldestDrawIdFromBeaconChain = 0;
   let newestDrawIdFromBeaconChain = 0;
   let newestDrawIdFromReceiverChain = 0;
@@ -83,9 +83,11 @@ export async function calculateReceiverDrawToPushToTimelock(
     drawFromBeaconChainToPush = await drawBufferBeaconChain.getDraw(
       drawIdToFetch
     );
-  }
-
-  if (newestDrawIdFromBeaconChain > 1 && newestDrawIdFromReceiverChain === 0) {
+    lockAndPush = true;
+  } else if (
+    newestDrawIdFromBeaconChain > 1 &&
+    newestDrawIdFromReceiverChain === 0
+  ) {
     /**
      * IF the Beacon chain has 2 or more draws and the Receiver chain is NOT initialized, we can
      * PUSH the NEWEST draw from the Beacon chain to the Receiver chain.
@@ -98,9 +100,8 @@ export async function calculateReceiverDrawToPushToTimelock(
     drawFromBeaconChainToPush = await drawBufferBeaconChain.getDraw(
       drawIdToFetch
     );
-  }
-
-  if (
+    lockAndPush = true;
+  } else if (
     newestDrawIdFromBeaconChain > newestDrawIdFromReceiverChain + 1 &&
     newestDrawIdFromReceiverChain > 0
   ) {
@@ -114,6 +115,7 @@ export async function calculateReceiverDrawToPushToTimelock(
     drawFromBeaconChainToPush = await drawBufferBeaconChain.getDraw(
       drawIdToFetch
     );
+    lockAndPush = true;
   }
 
   // WHY would we get undefined? What situation are missing?
@@ -127,5 +129,6 @@ export async function calculateReceiverDrawToPushToTimelock(
   return {
     drawFromBeaconChainToPush,
     drawIdToFetch,
+    lockAndPush,
   };
 }

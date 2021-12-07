@@ -2,7 +2,7 @@ import { Contract } from '@ethersproject/contracts';
 
 export async function calculateBeaconDrawToPushToTimelock(
   drawBufferBeaconChain: Contract,
-  prizeDistributionBufferBeaconChain: Contract,
+  prizeDistributionBufferBeaconChain: Contract
 ) {
   let drawIdToFetch;
   let drawNewestFromBeaconChain;
@@ -25,8 +25,11 @@ export async function calculateBeaconDrawToPushToTimelock(
     throw new Error('BeaconChain: PrizeDistributionBuffer is not initialized');
   }
 
-  console.log('DrawBuffer:newestDraw: ', drawNewestFromBeaconChain)
-  console.log('PrizeDistributionBuffer:newestPrizeDistributionDrawId: ', newestPrizeDistributionDrawId)
+  console.log('DrawBuffer:newestDraw: ', drawNewestFromBeaconChain);
+  console.log(
+    'PrizeDistributionBuffer:newestPrizeDistributionDrawId: ',
+    newestPrizeDistributionDrawId
+  );
 
   if (newestPrizeDistributionDrawId < drawNewestFromBeaconChain.drawId) {
     lockAndPush = true;
@@ -35,7 +38,6 @@ export async function calculateBeaconDrawToPushToTimelock(
 
   return {
     lockAndPush,
-    drawIdToFetch
-  }
-
+    drawIdToFetch,
+  };
 }
