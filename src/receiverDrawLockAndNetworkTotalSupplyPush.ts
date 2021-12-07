@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { Contract } from '@ethersproject/contracts';
 import { Transaction } from '@ethersproject/transactions';
 import { ContractsBlob, ProviderOptions } from './types';
@@ -8,8 +7,10 @@ import {
   getMultiTicketAverageTotalSuppliesBetween,
   sumBigNumbers,
 } from './utils';
-import { calculateDrawTimestamps } from './helpers';
-import { BigNumber } from '@ethersproject/bignumber';
+import {
+  calculateDrawTimestamps,
+  calculateReceiverDrawToPushToTimelock,
+} from './helpers';
 const debug = require('debug')('pt-autotask-lib');
 
 export interface PrizePoolNetworkConfig {
@@ -18,7 +19,7 @@ export interface PrizePoolNetworkConfig {
   allPrizePoolNetworkChains: ProviderOptions[];
 }
 
-export async function beaconDrawLockAndNetworkTotalSupplyPush(
+export async function receiverDrawLockAndNetworkTotalSupplyPush(
   contracts: ContractsBlob,
   config: PrizePoolNetworkConfig
 ): Promise<Transaction | undefined> {
@@ -43,6 +44,8 @@ export async function beaconDrawLockAndNetworkTotalSupplyPush(
   /* ==========================================================================================*/
   // Initializing Contracts using the Beacon/Receiver/SecondaryReceiver chain configurations
   /* ========================================================================================== */
+
+  //  Initialize BeaconChain contracts
   const drawBufferBeaconChain = getContract(
     'DrawBuffer',
     config.beaconChain.chainId,
@@ -61,16 +64,30 @@ export async function beaconDrawLockAndNetworkTotalSupplyPush(
     providerBeaconChain,
     contracts
   );
-  const beaconTimelockAndPushRouter = getContract(
-    'BeaconTimelockAndPushRouter',
-    config.beaconChain.chainId,
-    providerBeaconChain,
+
+  //  Initialize ReceiverChain contracts
+  const ticketReceiverChain = getContract(
+    'Ticket',
+    config.targetReceiverChain.chainId,
+    providerTargetReceiverChain,
     contracts
   );
-  const ticketBeaconChain = getContract(
-    'Ticket',
-    config.beaconChain.chainId,
-    providerBeaconChain,
+  const prizeDistributionBufferReceiverChain = getContract(
+    'PrizeDistributionBuffer',
+    config.targetReceiverChain.chainId,
+    providerTargetReceiverChain,
+    contracts
+  );
+  const drawCalculatorTimelockReceiverChain = getContract(
+    'DrawCalculatorTimelock',
+    config.targetReceiverChain.chainId,
+    providerTargetReceiverChain,
+    contracts
+  );
+  const receiverTimelockAndPushRouter = getContract(
+    'ReceiverTimelockAndPushRouter',
+    config.targetReceiverChain.chainId,
+    providerTargetReceiverChain,
     contracts
   );
 
@@ -79,11 +96,12 @@ export async function beaconDrawLockAndNetworkTotalSupplyPush(
     !drawBufferBeaconChain ||
     !prizeTierHistoryBeaconChain ||
     !prizeDistributionBufferBeaconChain ||
-    !beaconTimelockAndPushRouter ||
-    !ticketBeaconChain
-  ) {
-    throw new Error('Smart Contracts are unavailable');
-  }
+    !prizeDistributionBufferReceiverChain ||
+    !drawCalculatorTimelockReceiverChain ||
+    !receiverTimelockAndPushRouter ||
+    !ticketReceiverChain
+  )
+    return undefined;
 
   //  Initialize Secondary ReceiverChain contracts
   let otherTicketContracts:
@@ -98,57 +116,42 @@ export async function beaconDrawLockAndNetworkTotalSupplyPush(
   });
 
   /* ============================================================ */
-  // Fetching data from Beacon/SecondaryReceiver Chains
+  // Fetching data from Beacon/Receiver/SecondaryReceiver Chains
   /* ============================================================ */
-  let draw;
-  let drawIdToFetch;
-  let lastPrizeDistributionDrawId = 0;
-  const newestDraw = await drawBufferBeaconChain.getNewestDraw();
-  try {
-    const {
-      drawId,
-    } = await prizeDistributionBufferBeaconChain.getOldestPrizeDistribution();
-    if (drawId > 0) {
-      lastPrizeDistributionDrawId = drawId;
-    }
-  } catch (error) {}
+  const {
+    drawFromBeaconChainToPush,
+    drawIdToFetch,
+  } = await calculateReceiverDrawToPushToTimelock(
+    drawBufferBeaconChain,
+    prizeDistributionBufferBeaconChain,
+    prizeDistributionBufferReceiverChain,
+    drawCalculatorTimelockReceiverChain
+  );
 
-  console.log('OldestDraw: ', newestDraw);
-  if (lastPrizeDistributionDrawId < newestDraw.drawId) {
-    drawIdToFetch = lastPrizeDistributionDrawId + 1;
-    draw = await drawBufferBeaconChain.getDraw(drawIdToFetch);
-    // const prizeTier = await prizeTierHistoryBeaconChain.getPrizeTier(drawIdToFetch)
-    const startTimestampOffset = draw.beaconPeriodSeconds;
-    const startTime = draw.timestamp - startTimestampOffset;
-    const endTime = draw.timestamp - 1000; // Can we calculate the offset without requesting data from the PrizeTierHistory
+  const prizeTier = await prizeTierHistoryBeaconChain.getPrizeTier(
+    drawIdToFetch
+  );
+  const [startTime, endTime] = calculateDrawTimestamps(
+    prizeTier,
+    drawFromBeaconChainToPush
+  );
 
-    const allTicketAverageTotalSupply = await getMultiTicketAverageTotalSuppliesBetween(
-      otherTicketContracts,
-      startTime,
-      endTime
-    );
-    debug('allTicketAverageTotalSupply', allTicketAverageTotalSupply);
+  const allTicketAverageTotalSupply = await getMultiTicketAverageTotalSuppliesBetween(
+    otherTicketContracts,
+    startTime,
+    endTime
+  );
+  debug('allTicketAverageTotalSupply', allTicketAverageTotalSupply);
 
-    if (allTicketAverageTotalSupply?.length === 0) {
-      throw new Error('No ticket data available');
-    }
-
-    const totalNetworkTicketSupply = sumBigNumbers(allTicketAverageTotalSupply);
-    // const totalNetworkTicketSupply = BigNumber.from('100000000')
-
-    const drawNew = {
-      ...draw,
-      drawId: 1,
-    };
-    console.log('Draw: ', draw);
-    console.log('TotalNetworkSupply: ', totalNetworkTicketSupply);
-
-    // @ts-ignore
-    return await beaconTimelockAndPushRouter.populateTransaction.push(
-      draw,
-      totalNetworkTicketSupply
-    );
-  } else {
-    throw new Error('No draw to process');
+  if (!allTicketAverageTotalSupply) {
+    throw new Error('No ticket data available');
   }
+
+  const totalNetworkTicketSupply = sumBigNumbers(allTicketAverageTotalSupply);
+
+  // @ts-ignore
+  return await receiverTimelockAndPushRouter.populateTransaction.push(
+    drawFromBeaconChainToPush,
+    totalNetworkTicketSupply
+  );
 }

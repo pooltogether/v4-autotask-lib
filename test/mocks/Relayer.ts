@@ -1,3 +1,3 @@
 export const Relayer = {
-  sendTransaction: () => true
-}
+  sendTransaction: () => true,
+};

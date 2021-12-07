@@ -1,10 +1,9 @@
 import { receiverDrawLockPushAndNetworkTotalSupplyPush } from '../src/receiverDrawLockPushAndNetworkTotalSupplyPush';
-import contractsBlob from './contracts.json'
+import contractsBlob from './contracts.json';
 jest.setTimeout(10000); // 10 second
 
 describe('receiverDrawLockPushAndNetworkTotalSupplyPush', () => {
   it('should succeed to connect to the network and verify the DrawBeacon status', async () => {
-
     const config = {
       beaconChain: {
         chainId: 4,
@@ -22,15 +21,15 @@ describe('receiverDrawLockPushAndNetworkTotalSupplyPush', () => {
         {
           chainId: 80001,
           providerUrl: `https://polygon-mumbai.infura.io/v3/b81e24d29d1942b8bf04bf3c81ae3761`,
-        }
-      ]
-    }
+        },
+      ],
+    };
 
     const transaction = await receiverDrawLockPushAndNetworkTotalSupplyPush(
       contractsBlob,
-      config,
-    )
+      config
+    );
 
     expect(transaction).toBeTruthy();
-  })
-})
+  });
+});
