@@ -1,7 +1,7 @@
 import { PopulatedTransaction } from '@ethersproject/contracts';
 import { ContractsBlob, ProviderOptions } from './types';
 import { getContract } from './get/getContract';
-import { getJsonRpcProvider } from '.';
+import { getJsonRpcProvider } from './get/getJsonRpcProvider';
 const debug = require('debug')('pt-autotask-lib');
 
 export interface BeaconChainConfig {
