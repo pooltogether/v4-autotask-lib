@@ -105,8 +105,7 @@ export async function beaconDrawLockAndNetworkTotalSupplyPush(
     prizeDistributionBufferBeaconChain
   );
   if (lockAndPush) {
-    let drawFromBeaconChainToPush;
-    drawFromBeaconChainToPush = await drawBufferBeaconChain.getDraw(
+    const drawFromBeaconChainToPush = await drawBufferBeaconChain.getDraw(
       drawIdToFetch
     );
     const prizeTier = await prizeTierHistoryBeaconChain.getPrizeTier(
