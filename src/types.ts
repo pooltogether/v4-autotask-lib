@@ -1,19 +1,10 @@
-import { Transaction } from "@ethersproject/transactions";
-
-export interface ActionState {
-  err: any;
-  msg: any;
-  data?: any;
-  transaction?: any;
-  response?: Transaction;
-  status: number;
-}
+import { BigNumber } from '@ethersproject/bignumber';
 
 export interface ContractData {
-  address: string,
-  chainId: number,
-  type: string,
-  abi: any,
+  address: string;
+  chainId: number;
+  type: string;
+  abi: any;
 }
 
 export interface ContractsBlob {
@@ -24,30 +15,14 @@ export interface Config {
   chainId: number;
   network: string;
   apiKey: string | undefined;
-  speed?: "slow" | "normal" | "fast" | string;
+  speed?: 'slow' | 'normal' | 'fast';
   gasLimit?: number | string;
   execute?: Boolean;
 }
 
-export interface ConfigWithL2 {
+export interface ProviderOptions {
   chainId: number;
-  network: string;
-  apiKey: string | undefined;
-  speed?: "slow" | "normal" | "fast" | string;
-  gasLimit?: number | string;
-  execute?: Boolean;
-  L1: {
-    chainId: number;
-    network: string;
-  },
-  L2: {
-    chainId: number;
-    network: string;
-  }
-}
-
-export interface Relayer {
-  sendTransaction: Function;
+  providerUrl: string;
 }
 
 export interface Draw {
@@ -58,9 +33,38 @@ export interface Draw {
 }
 
 export interface ContractPrizeTierHistory {
-  getPrizeTier: Function
+  getPrizeTier: Function;
 }
 export interface ReserverContract {
-  getReserveAccumulatedBetween: Function
+  getReserveAccumulatedBetween: Function;
 }
 
+export interface Draw {
+  drawId: number;
+  winningRandomNumber: BigNumber;
+  timestamp: number;
+  beaconPeriodStartedAt: number;
+  beaconPeriodSeconds: number;
+}
+
+export interface PrizeDistribution {
+  bitRangeSize: number;
+  matchCardinality: number;
+  startTimestampOffset?: number;
+  endTimestampOffset?: number;
+  maxPicksPerUser: number;
+  expiryDuration: number;
+  numberOfPicks: BigNumber;
+  tiers: Array<BigNumber | number>;
+  prize: BigNumber;
+}
+
+export interface PrizeTier {
+  bitRangeSize: number;
+  drawId: number;
+  maxPicksPerUser: number;
+  expiryDuration: number;
+  endTimestampOffset: number;
+  prize: BigNumber;
+  tiers: Array<number>;
+}

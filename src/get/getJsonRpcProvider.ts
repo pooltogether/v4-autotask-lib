@@ -1,7 +1,7 @@
-import { ethers } from 'ethers'
+import { JsonRpcProvider } from '@ethersproject/providers';
 
 export function getJsonRpcProvider(url: string) {
-  return new ethers.providers.JsonRpcProvider(url)
+  return new JsonRpcProvider(url);
 }
 
 export default getJsonRpcProvider;
