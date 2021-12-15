@@ -1,7 +1,7 @@
 {
   "name": "v4-autotask-lib",
   "version": "0.1.0-beta.4",
-  "author": "Kames Geraghty",
+  "author": "PoolTogether Inc.",
   "license": "MIT",
   "module": "dist/v4-autotask-lib.esm.js",
   "main": "dist/index.js",
