@@ -1,11 +1,11 @@
-import { BigNumber, BigNumberish } from "@ethersproject/bignumber";
-import { Draw, PrizeDistribution, PrizeTier } from "../types";
+import { BigNumber, BigNumberish } from '@ethersproject/bignumber';
+import { Draw, PrizeDistribution, PrizeTier } from '../types';
 import {
   calculatePicksFromAverageTotalSuppliesBetween,
   computeCardinality,
-  sumBigNumbers
-} from "./index";
-const debug = require('debug')('pt-autotask-lib')
+  sumBigNumbers,
+} from './index';
+const debug = require('debug')('pt-autotask-lib');
 
 export async function computePrizeDistributionFromTicketAverageTotalSupplies(
   draw: Draw,
@@ -14,14 +14,16 @@ export async function computePrizeDistributionFromTicketAverageTotalSupplies(
   ticketSecondaryListAverageTotalSupply?: Array<BigNumberish>,
   decimals: BigNumberish = 18
 ): Promise<PrizeDistribution | undefined> {
-  debug("computePrizeDistributionFromTicketAverageTotalSupplies:ENTER");
+  debug('computePrizeDistributionFromTicketAverageTotalSupplies:ENTER');
   if (
     !draw ||
     !prizeTier ||
     !ticketPrimaryAverageTotalSupply ||
     !ticketSecondaryListAverageTotalSupply
-  ) { return undefined }
-  debug("computePrizeDistributionFromTicketAverageTotalSupplies:STATUS:GOOD");
+  ) {
+    return undefined;
+  }
+  debug('computePrizeDistributionFromTicketAverageTotalSupplies:STATUS:GOOD');
 
   const { beaconPeriodSeconds } = draw;
   const {
@@ -37,25 +39,37 @@ export async function computePrizeDistributionFromTicketAverageTotalSupplies(
     ticketPrimaryAverageTotalSupply
   );
 
-  debug("computePrizeDistributionFromTicketAverageTotalSupplies:ticketPrimaryAverageTotalSupplyBigNumber: ", ticketPrimaryAverageTotalSupplyBigNumber)
+  debug(
+    'computePrizeDistributionFromTicketAverageTotalSupplies:ticketPrimaryAverageTotalSupplyBigNumber: ',
+    ticketPrimaryAverageTotalSupplyBigNumber
+  );
 
   const ticketSecondaryListAverageTotalSupplyBigNumber = ticketSecondaryListAverageTotalSupply.map(
     BigNumber.from
   );
-  debug("computePrizeDistributionFromTicketAverageTotalSupplies:ticketSecondaryListAverageTotalSupplyBigNumber: ", ticketSecondaryListAverageTotalSupplyBigNumber)
+  debug(
+    'computePrizeDistributionFromTicketAverageTotalSupplies:ticketSecondaryListAverageTotalSupplyBigNumber: ',
+    ticketSecondaryListAverageTotalSupplyBigNumber
+  );
 
   // Sums the ALL ticket average total supplies.
   const totalAverageSupplies = sumBigNumbers([
     ticketPrimaryAverageTotalSupplyBigNumber,
     ...ticketSecondaryListAverageTotalSupplyBigNumber,
   ]);
-  debug("computePrizeDistributionFromTicketAverageTotalSupplies:totalAverageSupplies: ", totalAverageSupplies)
+  debug(
+    'computePrizeDistributionFromTicketAverageTotalSupplies:totalAverageSupplies: ',
+    totalAverageSupplies
+  );
 
   // Sums ALL SECONDARY ticket average total supplies.
   const secondaryTotalAverageSupplies = sumBigNumbers(
     ticketSecondaryListAverageTotalSupplyBigNumber
   );
-  debug("computePrizeDistributionFromTicketAverageTotalSupplies:secondaryTotalAverageSupplies: ", secondaryTotalAverageSupplies)
+  debug(
+    'computePrizeDistributionFromTicketAverageTotalSupplies:secondaryTotalAverageSupplies: ',
+    secondaryTotalAverageSupplies
+  );
 
   const matchCardinality = computeCardinality(
     BigNumber.from(bitRangeSize),
@@ -63,15 +77,21 @@ export async function computePrizeDistributionFromTicketAverageTotalSupplies(
     BigNumber.from(decimals)
   );
 
-  debug("computePrizeDistributionFromTicketAverageTotalSupplies:matchCardinality: ", matchCardinality)
+  debug(
+    'computePrizeDistributionFromTicketAverageTotalSupplies:matchCardinality: ',
+    matchCardinality
+  );
 
   let numberOfPicks = BigNumber.from(0);
   const totalPicks = BigNumber.from(BigNumber.from(2).pow(bitRangeSize)).pow(
     matchCardinality
   );
-  debug("computePrizeDistributionFromTicketAverageTotalSupplies:totalPicks: ", totalPicks)
+  debug(
+    'computePrizeDistributionFromTicketAverageTotalSupplies:totalPicks: ',
+    totalPicks
+  );
 
-  if (totalAverageSupplies.gt("0")) {
+  if (totalAverageSupplies.gt('0')) {
     numberOfPicks = calculatePicksFromAverageTotalSuppliesBetween(
       totalPicks.toNumber(),
       BigNumber.from(ticketPrimaryAverageTotalSupply),
@@ -79,7 +99,10 @@ export async function computePrizeDistributionFromTicketAverageTotalSupplies(
     );
   }
 
-  debug("computePrizeDistributionFromTicketAverageTotalSupplies:numberOfPicks: ", numberOfPicks)
+  debug(
+    'computePrizeDistributionFromTicketAverageTotalSupplies:numberOfPicks: ',
+    numberOfPicks
+  );
 
   const prizeDistribution: PrizeDistribution = {
     bitRangeSize: bitRangeSize,
@@ -92,8 +115,13 @@ export async function computePrizeDistributionFromTicketAverageTotalSupplies(
     prize: prize,
     endTimestampOffset,
   };
-  debug(`computePrizeDistributionFromTicketAverageTotalSupplies:prizeDistribution: `, prizeDistribution);
+  debug(
+    `computePrizeDistributionFromTicketAverageTotalSupplies:prizeDistribution: `,
+    prizeDistribution
+  );
 
-  debug("computePrizeDistributionFromTicketAverageTotalSupplies:computePrizeDistributionFromTicketAverageTotalSupplies:EXIT");
+  debug(
+    'computePrizeDistributionFromTicketAverageTotalSupplies:computePrizeDistributionFromTicketAverageTotalSupplies:EXIT'
+  );
   return prizeDistribution;
 }
