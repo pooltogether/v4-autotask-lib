@@ -10,20 +10,24 @@ export async function calculateReceiverDrawToPushToTimelock(
   drawCalculatorTimelockReceiverChain: Contract
 ) {
   let drawNewestFromBeaconChain;
+  let oldestDrawIdFromBeaconChain = 0;
+  let newestDrawIdFromBeaconChain = 0;
   try {
     drawNewestFromBeaconChain = await drawBufferBeaconChain.getNewestDraw();
+    newestDrawIdFromBeaconChain = drawNewestFromBeaconChain.drawId;
+    console.log(drawNewestFromBeaconChain)
   } catch (error) {
     throw new Error('BeaconChain: DrawBuffer is not initialized');
   }
   let lockAndPush: Boolean = false;
-  let oldestDrawIdFromBeaconChain = 0;
-  let newestDrawIdFromBeaconChain = 0;
   let newestDrawIdFromReceiverChain = 0;
+
   try {
     const {
       drawId: drawIdNewestFromReceiverChain,
     } = await prizeDistributionBufferReceiverChain.getNewestPrizeDistribution();
     newestDrawIdFromReceiverChain = drawIdNewestFromReceiverChain;
+    
   } catch (e) {
     // IF no prize distribution exists on the RECEIVER chain, the RPC call will throw an error.
     // IF no PrizeDistribution struct exists we know that the ReceiverChain PrizeDistributionBuffer has not been initialized yet.

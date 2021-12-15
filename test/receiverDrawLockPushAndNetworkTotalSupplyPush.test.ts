@@ -1,4 +1,4 @@
-import { receiverDrawLockPushAndNetworkTotalSupplyPush } from '../src/receiverDrawLockPushAndNetworkTotalSupplyPush';
+import { receiverDrawLockAndNetworkTotalSupplyPush } from '../src/receiverDrawLockAndNetworkTotalSupplyPush';
 import contractsBlob from './contracts.json';
 jest.setTimeout(10000); // 10 second
 
@@ -25,7 +25,7 @@ describe('receiverDrawLockPushAndNetworkTotalSupplyPush', () => {
       ],
     };
 
-    const transaction = await receiverDrawLockPushAndNetworkTotalSupplyPush(
+    const transaction = await receiverDrawLockAndNetworkTotalSupplyPush(
       contractsBlob,
       config
     );
