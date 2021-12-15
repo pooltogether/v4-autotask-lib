@@ -96,7 +96,7 @@ export async function calculateReceiverDrawToPushToTimelock(
      * IF the Beacon chain has 2 or more draws and the Receiver chain is NOT initialized, we can
      * PUSH the NEWEST draw from the Beacon chain to the Receiver chain.
      * @dev This scenario is likely to occur if a new PrizePool is created on the Receiver chain, after a Beacon chain has
-     *      been previously initialized with 2 more or more draws.
+     *      been previously initialized with 2 or more draws.
      *      We're assuming the Receiver chain has no need to sync with previous Beacon chain Draws/PrizeDistributions
      *      because the Receiver chain PrizePool DID NOT exist yet when the parameters were created.
      */
