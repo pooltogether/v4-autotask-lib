@@ -62,7 +62,7 @@ export async function beaconDrawLockAndNetworkTotalSupplyPush(
     contracts
   );
   const beaconTimelockAndPushRouter = getContract(
-    'BeaconTimelockAndPushRouter',
+    'BeaconTimelockTrigger',
     config.beaconChain.chainId,
     providerBeaconChain,
     contracts

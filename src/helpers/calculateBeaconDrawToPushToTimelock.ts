@@ -22,7 +22,8 @@ export async function calculateBeaconDrawToPushToTimelock(
       newestPrizeDistributionDrawId = drawId;
     }
   } catch (error) {
-    throw new Error('BeaconChain: PrizeDistributionBuffer is not initialized');
+    newestPrizeDistributionDrawId = 0;
+    // throw new Error('BeaconChain: PrizeDistributionBuffer is not initialized');
   }
 
   console.log('DrawBuffer:newestDraw: ', drawNewestFromBeaconChain);

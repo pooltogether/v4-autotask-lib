@@ -84,7 +84,7 @@ export async function receiverDrawLockAndNetworkTotalSupplyPush(
     contracts
   );
   const receiverTimelockAndPushRouter = getContract(
-    'ReceiverTimelockAndPushRouter',
+    'ReceiverTimelockTrigger',
     config.targetReceiverChain.chainId,
     providerTargetReceiverChain,
     contracts
