@@ -68,3 +68,9 @@ export interface PrizeTier {
   prize: BigNumber;
   tiers: Array<number>;
 }
+
+export interface PrizePoolNetworkConfig {
+  beaconChain: ProviderOptions;
+  receiverChain: ProviderOptions;
+  allPrizePoolNetworkChains: ProviderOptions[];
+}

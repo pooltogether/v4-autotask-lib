@@ -1,6 +1,6 @@
 {
   "name": "@pooltogether/v4-autotask-lib",
-  "version": "0.1.0-beta.5",
+  "version": "0.1.0-beta.6",
   "author": "PoolTogether Inc.",
   "license": "MIT",
   "module": "dist/v4-autotask-lib.esm.js",

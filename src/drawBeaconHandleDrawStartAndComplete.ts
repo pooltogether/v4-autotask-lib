@@ -1,7 +1,6 @@
 import { PopulatedTransaction } from '@ethersproject/contracts';
 import { ContractsBlob, ProviderOptions } from './types';
-import { getContract } from './get/getContract';
-import { getJsonRpcProvider } from './get/getJsonRpcProvider';
+import { getContract, getJsonRpcProvider } from './utils';
 const debug = require('debug')('pt-autotask-lib');
 
 export interface BeaconChainConfig {
@@ -14,9 +13,9 @@ export async function drawBeaconHandleDrawStartAndComplete(
 ): Promise<PopulatedTransaction | undefined> {
   let providerBeaconChain;
   if (config?.beaconChain?.providerUrl) {
-    providerBeaconChain = getJsonRpcProvider(config?.beaconChain?.providerUrl);
+    providerBeaconChain = getJsonRpcProvider(config.beaconChain.providerUrl);
   } else {
-    throw new Error('No Beacon chain provider url provided');
+    throw new Error('No Beacon Chain Provider URL');
   }
 
   const drawBeacon = getContract(
