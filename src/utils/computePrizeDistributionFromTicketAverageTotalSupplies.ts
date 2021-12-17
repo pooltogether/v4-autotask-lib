@@ -1,10 +1,8 @@
 import { BigNumber, BigNumberish } from '@ethersproject/bignumber';
 import { Draw, PrizeDistribution, PrizeTier } from '../types';
-import {
-  calculatePicksFromAverageTotalSuppliesBetween,
-  computeCardinality,
-  sumBigNumbers,
-} from './index';
+import { calculatePicksFromAverageTotalSuppliesBetween } from './calculatePicksFromAverageTotalSuppliesBetween'
+import { computeCardinality } from './computeCardinality';
+import { sumBigNumbers } from './sumBigNumbers';
 const debug = require('debug')('pt-autotask-lib');
 
 export async function computePrizeDistributionFromTicketAverageTotalSupplies(

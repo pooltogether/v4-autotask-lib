@@ -11,11 +11,11 @@ export async function getMultiTicketAverageTotalSuppliesBetween(
     tickets.map(async contract => {
       if (!contract) return undefined;
       try {
-        const tsv = await contract.getAverageTotalSuppliesBetween(
+        const averageTotalSuppliesBetween = await contract.getAverageTotalSuppliesBetween(
           [startTime],
           [endTime]
         );
-        return tsv[0];
+        return averageTotalSuppliesBetween[0];
       } catch (error) {
         console.log('Error:', error);
         return;

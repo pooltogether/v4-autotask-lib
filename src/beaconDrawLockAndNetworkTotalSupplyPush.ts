@@ -1,10 +1,10 @@
 import { Contract, PopulatedTransaction } from '@ethersproject/contracts';
+import { JsonRpcProvider } from '@ethersproject/providers';
 import { ContractsBlob, PrizePoolNetworkConfig } from './types';
 import {
   calculateDrawTimestamps,
   calculateBeaconDrawToPushToTimelock,
   getContract,
-  getJsonRpcProvider,
   getMultiTicketAverageTotalSuppliesBetween,
   sumBigNumbers,
 } from './utils';
@@ -18,7 +18,7 @@ export async function beaconDrawLockAndNetworkTotalSupplyPush(
   let providerBeaconChain;
 
   if (config?.beaconChain?.providerUrl) {
-    providerBeaconChain = getJsonRpcProvider(config?.beaconChain?.providerUrl);
+    providerBeaconChain = new JsonRpcProvider(config?.beaconChain?.providerUrl);
   }
 
   if (!providerBeaconChain) {
@@ -75,7 +75,7 @@ export async function beaconDrawLockAndNetworkTotalSupplyPush(
     return getContract(
       'Ticket',
       otherTicket.chainId,
-      getJsonRpcProvider(otherTicket.providerUrl),
+      new JsonRpcProvider(otherTicket.providerUrl),
       contracts
     );
   });
