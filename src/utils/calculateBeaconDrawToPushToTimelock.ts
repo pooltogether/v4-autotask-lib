@@ -1,5 +1,4 @@
 import { Contract } from '@ethersproject/contracts';
-const debug = require('debug')('pt-autotask-lib');
 
 export async function calculateBeaconDrawToPushToTimelock(
   drawBufferBeaconChain: Contract,
@@ -14,7 +13,6 @@ export async function calculateBeaconDrawToPushToTimelock(
   } catch (error) {
     throw new Error('BeaconChain: DrawBuffer is not initialized');
   }
-
   try {
     const {
       drawId,
@@ -26,14 +24,14 @@ export async function calculateBeaconDrawToPushToTimelock(
     newestPrizeDistributionDrawId = 0;
   }
 
-  debug('DrawBuffer:newestDraw: ', drawNewestFromBeaconChain);
-  debug(
-    'PrizeDistributionBuffer:newestPrizeDistributionDrawId: ',
-    newestPrizeDistributionDrawId
-  );
   if (newestPrizeDistributionDrawId < drawNewestFromBeaconChain.drawId) {
     lockAndPush = true;
     drawIdToFetch = newestPrizeDistributionDrawId + 1;
+    console.log('DrawBuffer Newest Draw: ', drawNewestFromBeaconChain);
+    console.log(
+      'PrizeDistributionBuffer newest PrizeDistribution DrawID: ',
+      newestPrizeDistributionDrawId
+    );
   }
 
   return {
