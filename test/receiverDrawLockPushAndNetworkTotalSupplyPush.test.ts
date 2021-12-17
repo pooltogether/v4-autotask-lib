@@ -25,15 +25,14 @@ describe('receiverDrawLockPushAndNetworkTotalSupplyPush', () => {
       ],
     };
 
-
     try {
       const transaction = await receiverDrawLockAndNetworkTotalSupplyPush(
-          testnetContracts,
-          config
-        );        
-        expect(transaction).toBeTruthy();
-      } catch (error) {
-        console.log('Network Error')
-      }
+        testnetContracts,
+        config
+      );
+      expect(transaction).toBeTruthy();
+    } catch (error) {
+      console.log('Network Error');
+    }
   });
 });

@@ -21,8 +21,9 @@ export async function drawBeaconHandleDrawStartAndComplete(
     config.beaconChain.chainId,
     providerBeaconChain,
     contracts
-  ); {
-    if (!drawBeacon) throw new Error('DrawBeacon: Contract Unavailable');
+  );
+  if (!drawBeacon) {
+    throw new Error('DrawBeacon: Contract Unavailable');
   }
 
   const nextDrawId = await drawBeacon.getNextDrawId();

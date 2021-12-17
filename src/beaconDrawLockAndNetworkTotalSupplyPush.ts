@@ -66,7 +66,9 @@ export async function beaconDrawLockAndNetworkTotalSupplyPush(
     !beaconTimelockAndPushRouter ||
     !ticketBeaconChain
   ) {
-    throw new Error("Contract Unavailable: Check ContractList and Provider Configuration")
+    throw new Error(
+      'Contract Unavailable: Check ContractList and Provider Configuration'
+    );
   }
 
   let otherTicketContracts:
@@ -88,7 +90,7 @@ export async function beaconDrawLockAndNetworkTotalSupplyPush(
     prizeDistributionBufferBeaconChain
   );
 
-   /**
+  /**
    * The calculateBeaconDrawToPushToTimelock calculate whether a Draw needs to be locked and pushed.
    * IF a Draw and PrizeDistribution need to be locked/pushed we fetch the required data from multiple networks.
    */

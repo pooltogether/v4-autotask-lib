@@ -17,7 +17,6 @@ export async function calculateReceiverDrawToPushToTimelock(
     newestDrawIdFromBeaconChain = drawNewestFromBeaconChain.drawId;
     debug(drawNewestFromBeaconChain);
   } catch (error) {
-    console.log(error);
     throw new Error('BeaconChain: DrawBuffer is not initialized');
   }
   let lockAndPush: Boolean = false;

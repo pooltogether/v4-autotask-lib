@@ -1,6 +1,6 @@
 import { BigNumber, BigNumberish } from '@ethersproject/bignumber';
 import { Draw, PrizeDistribution, PrizeTier } from '../types';
-import { calculatePicksFromAverageTotalSuppliesBetween } from './calculatePicksFromAverageTotalSuppliesBetween'
+import { calculatePicksFromAverageTotalSuppliesBetween } from './calculatePicksFromAverageTotalSuppliesBetween';
 import { computeCardinality } from './computeCardinality';
 import { sumBigNumbers } from './sumBigNumbers';
 const debug = require('debug')('pt-autotask-lib');

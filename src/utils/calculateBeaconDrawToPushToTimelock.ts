@@ -1,4 +1,5 @@
 import { Contract } from '@ethersproject/contracts';
+const debug = require('debug')('pt-autotask-lib');
 
 export async function calculateBeaconDrawToPushToTimelock(
   drawBufferBeaconChain: Contract,
@@ -25,8 +26,8 @@ export async function calculateBeaconDrawToPushToTimelock(
     newestPrizeDistributionDrawId = 0;
   }
 
-  console.log('DrawBuffer:newestDraw: ', drawNewestFromBeaconChain);
-  console.log(
+  debug('DrawBuffer:newestDraw: ', drawNewestFromBeaconChain);
+  debug(
     'PrizeDistributionBuffer:newestPrizeDistributionDrawId: ',
     newestPrizeDistributionDrawId
   );
