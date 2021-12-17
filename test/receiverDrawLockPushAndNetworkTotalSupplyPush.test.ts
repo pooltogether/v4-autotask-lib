@@ -1,5 +1,5 @@
 import { receiverDrawLockAndNetworkTotalSupplyPush } from '../src/receiverDrawLockAndNetworkTotalSupplyPush';
-import contractsBlob from './contracts.json';
+import { testnet as testnetContracts } from '@pooltogether/v4-pool-data';
 jest.setTimeout(10000); // 10 second
 
 describe('receiverDrawLockPushAndNetworkTotalSupplyPush', () => {
@@ -9,27 +9,31 @@ describe('receiverDrawLockPushAndNetworkTotalSupplyPush', () => {
         chainId: 4,
         providerUrl: `https://rinkeby.infura.io/v3/${process.env.INFURA_API_KEY}`,
       },
-      targetReceiverChain: {
+      receiverChain: {
         chainId: 80001,
-        providerUrl: `https://polygon-mumbai.infura.io/v3/b81e24d29d1942b8bf04bf3c81ae3761`,
+        providerUrl: `https://polygon-mumbai.infura.io/v3/${process.env.INFURA_API_KEY}`,
       },
       allPrizePoolNetworkChains: [
         {
           chainId: 4,
-          providerUrl: `https://rinkeby.infura.io/v3/b81e24d29d1942b8bf04bf3c81ae3761`,
+          providerUrl: `https://rinkeby.infura.io/v3/${process.env.INFURA_API_KEY}`,
         },
         {
           chainId: 80001,
-          providerUrl: `https://polygon-mumbai.infura.io/v3/b81e24d29d1942b8bf04bf3c81ae3761`,
+          providerUrl: `https://polygon-mumbai.infura.io/v3/${process.env.INFURA_API_KEY}`,
         },
       ],
     };
 
-    const transaction = await receiverDrawLockAndNetworkTotalSupplyPush(
-      contractsBlob,
-      config
-    );
 
-    expect(transaction).toBeTruthy();
+    try {
+      const transaction = await receiverDrawLockAndNetworkTotalSupplyPush(
+          testnetContracts,
+          config
+        );        
+        expect(transaction).toBeTruthy();
+      } catch (error) {
+        console.log('Network Error')
+      }
   });
 });

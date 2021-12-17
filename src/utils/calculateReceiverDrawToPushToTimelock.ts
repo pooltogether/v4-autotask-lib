@@ -15,14 +15,13 @@ export async function calculateReceiverDrawToPushToTimelock(
   try {
     drawNewestFromBeaconChain = await drawBufferBeaconChain.getNewestDraw();
     newestDrawIdFromBeaconChain = drawNewestFromBeaconChain.drawId;
-    console.log(drawNewestFromBeaconChain);
+    debug(drawNewestFromBeaconChain);
   } catch (error) {
     console.log(error);
     throw new Error('BeaconChain: DrawBuffer is not initialized');
   }
   let lockAndPush: Boolean = false;
   let newestDrawIdFromReceiverChain = 0;
-  console.log(prizeDistributionBufferBeaconChain, 'PSDC');
   try {
     const {
       drawId: drawIdNewestFromReceiverChain,
@@ -126,7 +125,6 @@ export async function calculateReceiverDrawToPushToTimelock(
   if (typeof drawFromBeaconChainToPush === 'undefined') {
     throw new Error('DrawBufferBeaconChain/error-calculating-correct-draw');
   }
-
   debug('DrawID: ', drawIdToFetch);
   debug('Draw: ', drawFromBeaconChainToPush);
 
