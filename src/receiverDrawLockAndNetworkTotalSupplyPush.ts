@@ -82,7 +82,6 @@ export async function receiverDrawLockAndNetworkTotalSupplyPush(
     contracts
   );
 
-  // TODO: throw error if any of the contracts is unavailable?
   if (
     !drawBufferBeaconChain ||
     !prizeTierHistoryBeaconChain ||
@@ -91,10 +90,10 @@ export async function receiverDrawLockAndNetworkTotalSupplyPush(
     !drawCalculatorTimelockReceiverChain ||
     !receiverTimelockTrigger ||
     !ticketReceiverChain
-  )
-    return undefined;
+  ) {
+    throw new Error("Contract Unavailable: Check ContractList and Provider Configuration")
+  }
 
-  //  Initialize Secondary ReceiverChain contracts
   let otherTicketContracts:
     | Array<Contract | undefined>
     | undefined = config.allPrizePoolNetworkChains?.map(otherTicket => {
@@ -119,7 +118,11 @@ export async function receiverDrawLockAndNetworkTotalSupplyPush(
     prizeDistributionBufferReceiverChain,
     drawCalculatorTimelockReceiverChain
   );
-
+  
+  /**
+   * The calculateReceiverDrawToPushToTimelock calculate whether a Draw needs to be locked and pushed.
+   * IF a Draw and PrizeDistribution need to be locked/pushed we fetch the required data from multiple networks.
+   */
   if (lockAndPush) {
     const prizeTier = await prizeTierHistoryBeaconChain.getPrizeTier(
       drawIdToFetch
