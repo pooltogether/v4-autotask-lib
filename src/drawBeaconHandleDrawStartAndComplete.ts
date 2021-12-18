@@ -1,12 +1,9 @@
 import { PopulatedTransaction } from '@ethersproject/contracts';
-import { ContractsBlob, ProviderOptions } from './types';
-import { getContract } from './get/getContract';
-import { getJsonRpcProvider } from './get/getJsonRpcProvider';
-const debug = require('debug')('pt-autotask-lib');
+import { JsonRpcProvider } from '@ethersproject/providers';
+import { ContractsBlob, BeaconChainConfig } from './types';
+import { getContract } from './utils';
 
-export interface BeaconChainConfig {
-  beaconChain: ProviderOptions;
-}
+const debug = require('debug')('pt-autotask-lib');
 
 export async function drawBeaconHandleDrawStartAndComplete(
   contracts: ContractsBlob,
@@ -14,9 +11,9 @@ export async function drawBeaconHandleDrawStartAndComplete(
 ): Promise<PopulatedTransaction | undefined> {
   let providerBeaconChain;
   if (config?.beaconChain?.providerUrl) {
-    providerBeaconChain = getJsonRpcProvider(config?.beaconChain?.providerUrl);
+    providerBeaconChain = new JsonRpcProvider(config.beaconChain.providerUrl);
   } else {
-    throw new Error('No Beacon chain provider url provided');
+    throw new Error('No Beacon Chain Provider URL');
   }
 
   const drawBeacon = getContract(
@@ -25,7 +22,9 @@ export async function drawBeaconHandleDrawStartAndComplete(
     providerBeaconChain,
     contracts
   );
-  if (!drawBeacon) throw new Error('DrawBeacon: Contract not found');
+  if (!drawBeacon) {
+    throw new Error('DrawBeacon: Contract Unavailable');
+  }
 
   const nextDrawId = await drawBeacon.getNextDrawId();
   const beaconPeriodStartedAt = await drawBeacon.getBeaconPeriodStartedAt();

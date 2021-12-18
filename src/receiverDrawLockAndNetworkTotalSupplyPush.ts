@@ -1,50 +1,42 @@
 import { Contract, PopulatedTransaction } from '@ethersproject/contracts';
-import { ContractsBlob, ProviderOptions } from './types';
-import { getContract } from './get/getContract';
-import { getJsonRpcProvider } from './get/getJsonRpcProvider';
-import {
-  getMultiTicketAverageTotalSuppliesBetween,
-  sumBigNumbers,
-} from './utils';
+import { JsonRpcProvider } from '@ethersproject/providers';
+import { ContractsBlob, PrizePoolNetworkConfig } from './types';
 import {
   calculateDrawTimestamps,
   calculateReceiverDrawToPushToTimelock,
-} from './helpers';
-const debug = require('debug')('pt-autotask-lib');
+  getContract,
+  getMultiTicketAverageTotalSuppliesBetween,
+  sumBigNumbers,
+} from './utils';
 
-export interface PrizePoolNetworkConfig {
-  beaconChain: ProviderOptions;
-  targetReceiverChain: ProviderOptions;
-  allPrizePoolNetworkChains: ProviderOptions[];
-}
+const debug = require('debug')('pt-autotask-lib');
 
 export async function receiverDrawLockAndNetworkTotalSupplyPush(
   contracts: ContractsBlob,
   config: PrizePoolNetworkConfig
 ): Promise<PopulatedTransaction | undefined> {
   let providerBeaconChain;
-  let providerTargetReceiverChain;
+  let providerReceiverChain;
 
   if (config?.beaconChain?.providerUrl) {
-    providerBeaconChain = getJsonRpcProvider(config?.beaconChain?.providerUrl);
+    providerBeaconChain = new JsonRpcProvider(config?.beaconChain?.providerUrl);
   }
 
-  if (config?.targetReceiverChain?.providerUrl) {
-    providerTargetReceiverChain = getJsonRpcProvider(
-      config?.targetReceiverChain?.providerUrl
+  if (config?.receiverChain?.providerUrl) {
+    providerReceiverChain = new JsonRpcProvider(
+      config?.receiverChain?.providerUrl
     );
   }
 
-  // TODO: throw error if no provider?
-  if (!providerBeaconChain || !providerTargetReceiverChain) {
-    return undefined;
+  if (!providerBeaconChain || !providerReceiverChain) {
+    throw new Error('Providers Unavailable: check providerUrl configuration');
   }
 
   /* ==========================================================================================*/
   // Initializing Contracts using the Beacon/Receiver/SecondaryReceiver chain configurations
   /* ========================================================================================== */
 
-  //  Initialize BeaconChain contracts
+  //  Beacon Chain Contracts
   const drawBufferBeaconChain = getContract(
     'DrawBuffer',
     config.beaconChain.chainId,
@@ -64,52 +56,53 @@ export async function receiverDrawLockAndNetworkTotalSupplyPush(
     contracts
   );
 
-  //  Initialize ReceiverChain contracts
+  //  Receiver Chain Contracts
   const ticketReceiverChain = getContract(
     'Ticket',
-    config.targetReceiverChain.chainId,
-    providerTargetReceiverChain,
+    config.receiverChain.chainId,
+    providerReceiverChain,
     contracts
   );
   const prizeDistributionBufferReceiverChain = getContract(
     'PrizeDistributionBuffer',
-    config.targetReceiverChain.chainId,
-    providerTargetReceiverChain,
+    config.receiverChain.chainId,
+    providerReceiverChain,
     contracts
   );
   const drawCalculatorTimelockReceiverChain = getContract(
     'DrawCalculatorTimelock',
-    config.targetReceiverChain.chainId,
-    providerTargetReceiverChain,
+    config.receiverChain.chainId,
+    providerReceiverChain,
     contracts
   );
-  const receiverTimelockAndPushRouter = getContract(
-    'ReceiverTimelockAndPushRouter',
-    config.targetReceiverChain.chainId,
-    providerTargetReceiverChain,
+  const receiverTimelockTrigger = getContract(
+    'ReceiverTimelockTrigger',
+    config.receiverChain.chainId,
+    providerReceiverChain,
     contracts
   );
 
-  // TODO: throw error if any of the contracts is unavailable?
   if (
     !drawBufferBeaconChain ||
     !prizeTierHistoryBeaconChain ||
     !prizeDistributionBufferBeaconChain ||
     !prizeDistributionBufferReceiverChain ||
     !drawCalculatorTimelockReceiverChain ||
-    !receiverTimelockAndPushRouter ||
+    !receiverTimelockTrigger ||
     !ticketReceiverChain
-  )
-    return undefined;
+  ) {
+    throw new Error(
+      'Contract Unavailable: Check ContractList and Provider Configuration'
+    );
+  }
 
-  //  Initialize Secondary ReceiverChain contracts
   let otherTicketContracts:
     | Array<Contract | undefined>
     | undefined = config.allPrizePoolNetworkChains?.map(otherTicket => {
     return getContract(
       'Ticket',
       otherTicket.chainId,
-      getJsonRpcProvider(otherTicket.providerUrl),
+      new JsonRpcProvider(otherTicket.providerUrl),
       contracts
     );
   });
@@ -128,10 +121,15 @@ export async function receiverDrawLockAndNetworkTotalSupplyPush(
     drawCalculatorTimelockReceiverChain
   );
 
+  /**
+   * The calculateReceiverDrawToPushToTimelock calculate whether a Draw needs to be locked and pushed.
+   * IF a Draw and PrizeDistribution need to be locked/pushed we fetch the required data from multiple networks.
+   */
   if (lockAndPush) {
     const prizeTier = await prizeTierHistoryBeaconChain.getPrizeTier(
       drawIdToFetch
     );
+
     const [startTime, endTime] = calculateDrawTimestamps(
       prizeTier,
       drawFromBeaconChainToPush
@@ -142,20 +140,22 @@ export async function receiverDrawLockAndNetworkTotalSupplyPush(
       startTime,
       endTime
     );
+
     debug('allTicketAverageTotalSupply', allTicketAverageTotalSupply);
 
-    if (!allTicketAverageTotalSupply) {
-      throw new Error('No ticket data available');
+    if (
+      !allTicketAverageTotalSupply ||
+      allTicketAverageTotalSupply.length === 0
+    ) {
+      throw new Error('No Ticket data available');
     }
 
     const totalNetworkTicketSupply = sumBigNumbers(allTicketAverageTotalSupply);
-
-    return await receiverTimelockAndPushRouter.populateTransaction.push(
+    return await receiverTimelockTrigger.populateTransaction.push(
       drawFromBeaconChainToPush,
       totalNetworkTicketSupply
     );
   } else {
-    console.log('No Draw to lock and push');
-    return undefined;
+    throw new Error('No Draw to LockAndPush');
   }
 }

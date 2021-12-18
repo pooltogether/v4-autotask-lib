@@ -1,43 +1,28 @@
 import { Contract, PopulatedTransaction } from '@ethersproject/contracts';
-import { ContractsBlob, ProviderOptions } from './types';
-import { getContract } from './get/getContract';
-import { getJsonRpcProvider } from './get/getJsonRpcProvider';
-import {
-  getMultiTicketAverageTotalSuppliesBetween,
-  sumBigNumbers,
-} from './utils';
+import { JsonRpcProvider } from '@ethersproject/providers';
+import { ContractsBlob, PrizePoolNetworkConfig } from './types';
 import {
   calculateDrawTimestamps,
   calculateBeaconDrawToPushToTimelock,
-} from './helpers';
-const debug = require('debug')('pt-autotask-lib');
+  getContract,
+  getMultiTicketAverageTotalSuppliesBetween,
+  sumBigNumbers,
+} from './utils';
 
-export interface PrizePoolNetworkConfig {
-  beaconChain: ProviderOptions;
-  targetReceiverChain: ProviderOptions;
-  allPrizePoolNetworkChains: ProviderOptions[];
-}
+const debug = require('debug')('pt-autotask-lib');
 
 export async function beaconDrawLockAndNetworkTotalSupplyPush(
   contracts: ContractsBlob,
   config: PrizePoolNetworkConfig
 ): Promise<PopulatedTransaction | undefined> {
   let providerBeaconChain;
-  let providerTargetReceiverChain;
 
   if (config?.beaconChain?.providerUrl) {
-    providerBeaconChain = getJsonRpcProvider(config?.beaconChain?.providerUrl);
+    providerBeaconChain = new JsonRpcProvider(config?.beaconChain?.providerUrl);
   }
 
-  if (config?.targetReceiverChain?.providerUrl) {
-    providerTargetReceiverChain = getJsonRpcProvider(
-      config?.targetReceiverChain?.providerUrl
-    );
-  }
-
-  // TODO: throw error if no provider?
-  if (!providerBeaconChain || !providerTargetReceiverChain) {
-    return undefined;
+  if (!providerBeaconChain) {
+    throw new Error('Provider Unavailable: check providerUrl configuration');
   }
 
   /* ==========================================================================================*/
@@ -62,7 +47,7 @@ export async function beaconDrawLockAndNetworkTotalSupplyPush(
     contracts
   );
   const beaconTimelockAndPushRouter = getContract(
-    'BeaconTimelockAndPushRouter',
+    'BeaconTimelockTrigger',
     config.beaconChain.chainId,
     providerBeaconChain,
     contracts
@@ -74,7 +59,6 @@ export async function beaconDrawLockAndNetworkTotalSupplyPush(
     contracts
   );
 
-  // TODO: throw error if any of the contracts is unavailable?
   if (
     !drawBufferBeaconChain ||
     !prizeTierHistoryBeaconChain ||
@@ -82,17 +66,18 @@ export async function beaconDrawLockAndNetworkTotalSupplyPush(
     !beaconTimelockAndPushRouter ||
     !ticketBeaconChain
   ) {
-    throw new Error('Smart Contracts are unavailable');
+    throw new Error(
+      'Contract Unavailable: Check ContractList and Provider Configuration'
+    );
   }
 
-  //  Initialize Secondary ReceiverChain contracts
   let otherTicketContracts:
     | Array<Contract | undefined>
     | undefined = config.allPrizePoolNetworkChains?.map(otherTicket => {
     return getContract(
       'Ticket',
       otherTicket.chainId,
-      getJsonRpcProvider(otherTicket.providerUrl),
+      new JsonRpcProvider(otherTicket.providerUrl),
       contracts
     );
   });
@@ -104,6 +89,11 @@ export async function beaconDrawLockAndNetworkTotalSupplyPush(
     drawBufferBeaconChain,
     prizeDistributionBufferBeaconChain
   );
+
+  /**
+   * The calculateBeaconDrawToPushToTimelock calculate whether a Draw needs to be locked and pushed.
+   * IF a Draw and PrizeDistribution need to be locked/pushed we fetch the required data from multiple networks.
+   */
   if (lockAndPush) {
     const drawFromBeaconChainToPush = await drawBufferBeaconChain.getDraw(
       drawIdToFetch
@@ -126,19 +116,18 @@ export async function beaconDrawLockAndNetworkTotalSupplyPush(
       !allTicketAverageTotalSupply ||
       allTicketAverageTotalSupply.length === 0
     ) {
-      throw new Error('No ticket data available');
+      throw new Error('No Ticket data available');
     }
 
     const totalNetworkTicketSupply = sumBigNumbers(allTicketAverageTotalSupply);
+    debug('Draw: ', drawFromBeaconChainToPush);
+    debug('TotalNetworkSupply: ', totalNetworkTicketSupply);
 
-    console.log('Draw: ', drawFromBeaconChainToPush);
-    console.log('TotalNetworkSupply: ', totalNetworkTicketSupply);
     return await beaconTimelockAndPushRouter.populateTransaction.push(
       drawFromBeaconChainToPush,
       totalNetworkTicketSupply
     );
   } else {
-    console.log('No Draw to lock and push');
-    return undefined;
+    throw new Error('No Draw to LockAndPush');
   }
 }
