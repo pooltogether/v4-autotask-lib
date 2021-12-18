@@ -25,7 +25,9 @@ export async function calculateBeaconDrawToPushToTimelock(
    * IF the fetch throws an error, the PrizeDistribution is not initialized
    */
   try {
-    const { drawId } = await prizeDistributionBufferBeaconChain.getNewestPrizeDistribution();
+    const {
+      drawId,
+    } = await prizeDistributionBufferBeaconChain.getNewestPrizeDistribution();
     newestPrizeDistributionDrawId = drawId;
   } catch (error) {
     newestPrizeDistributionDrawId = 0;
@@ -43,7 +45,7 @@ export async function calculateBeaconDrawToPushToTimelock(
       newestPrizeDistributionDrawId
     );
   }
-  
+
   return {
     lockAndPush,
     drawIdToFetch,
