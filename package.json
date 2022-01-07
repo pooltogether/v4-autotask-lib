@@ -18,7 +18,8 @@
     "build": "tsdx build",
     "test": "tsdx test",
     "lint": "tsdx lint",
-    "prepare": "tsdx build"
+    "prepare": "tsdx build",
+    "clean": "jest --clearCache"
   },
   "dependencies": {
     "ethers": "^5.4.7"
