@@ -75,6 +75,6 @@ export interface BeaconChainConfig {
 
 export interface PrizePoolNetworkConfig {
   beaconChain: ProviderOptions;
-  receiverChain: ProviderOptions;
-  allPrizePoolNetworkChains: ProviderOptions[];
+  receiverChain?: ProviderOptions;
+  allPrizePoolNetworkChains?: ProviderOptions[];
 }
