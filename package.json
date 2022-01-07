@@ -1,6 +1,6 @@
 {
   "name": "@pooltogether/v4-autotask-lib",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "author": "PoolTogether Inc.",
   "license": "MIT",
   "module": "dist/v4-autotask-lib.esm.js",
@@ -25,7 +25,6 @@
     "ethers": "^5.4.7"
   },
   "devDependencies": {
-    "@pooltogether/v4-pool-data": "^1.5.0-beta.2",
     "chalk": "^4.1.2",
     "debug": "^4.3.2",
     "husky": "^7.0.2",
