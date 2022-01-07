@@ -1,4 +1,8 @@
-import { drawBeaconHandleDrawStartAndComplete, beaconDrawLockAndNetworkTotalSupplyPush, receiverDrawLockAndNetworkTotalSupplyPush } from '../src';
+import {
+  drawBeaconHandleDrawStartAndComplete,
+  beaconDrawLockAndNetworkTotalSupplyPush,
+  receiverDrawLockAndNetworkTotalSupplyPush,
+} from '../src';
 
 describe('exports', () => {
   it('should have all expected exports defined', () => {
