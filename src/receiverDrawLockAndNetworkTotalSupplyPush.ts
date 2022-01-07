@@ -20,12 +20,16 @@ export async function receiverDrawLockAndNetworkTotalSupplyPush(
 
   if (config?.beaconChain?.providerUrl) {
     providerBeaconChain = new JsonRpcProvider(config?.beaconChain?.providerUrl);
+  } else {
+    throw new Error('Beacon Unavailable: check providerUrl configuration');
   }
 
-  if (config?.receiverChain?.providerUrl) {
+  if (config?.receiverChain?.providerUrl && config?.receiverChain?.chainId) {
     providerReceiverChain = new JsonRpcProvider(
       config?.receiverChain?.providerUrl
     );
+  } else {
+    throw new Error('Receiver Unavailable: check providerUrl configuration');
   }
 
   if (!providerBeaconChain || !providerReceiverChain) {
